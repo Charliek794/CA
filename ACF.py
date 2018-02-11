@@ -10,15 +10,32 @@ Automata Celular Functions
 from random import randint
 from PyQt5 import QtCore, QtGui, uic, QtWidgets
 
+def change_item(Data_Table,x,y,text):
+    item = QtWidgets.QTableWidgetItem()           
+    item.setText(text)
+    Data_Table.setItem(x, y, item)
+
 def new_row(Data_Table, row):
     Data_Table.insertRow(row)
-    item = QtWidgets.QTableWidgetItem()
-    item.setText("0")
     #TODO
-    #Data_Table.setItem(row, 1, item)
-    #Data_Table.setItem(row, 2, item)
-    Data_Table.setItem(row, 3, item)
-    #Data_Table.setItem(row, 6, item)
+    change_item(Data_Table,row,0,"0")
+    change_item(Data_Table,row,1,"0")
+    change_item(Data_Table,row,2,"0")
+    change_item(Data_Table,row,3,"0")
+    change_item(Data_Table,row,4,"0")
+    change_item(Data_Table,row,5,"0")
+    change_item(Data_Table,row,6,"0")
+    change_item(Data_Table,row,7,"0")
+    
+    change_item(Data_Table,row,0,"")
+    change_item(Data_Table,row,1,"")
+    change_item(Data_Table,row,2,"")
+    change_item(Data_Table,row,3,"")
+    change_item(Data_Table,row,4,"")
+    change_item(Data_Table,row,5,"")
+    change_item(Data_Table,row,6,"")
+    change_item(Data_Table,row,7,"")
+
 
 def find_item(Data_Table, nombre):
     for i in range(0,Data_Table.rowCount() - 1):
@@ -30,11 +47,6 @@ def delete_item(Data_Table,x,y):
     item = QtWidgets.QTableWidgetItem()   
     nombre = ""        
     item.setText(nombre)
-    Data_Table.setItem(x, y, item)
-    
-def change_item(Data_Table,x,y,text):
-    item = QtWidgets.QTableWidgetItem()           
-    item.setText(text)
     Data_Table.setItem(x, y, item)
 
 def inicial_set(Data_Especies, N_Nichos, N_Especies, Especies_Nicho):
