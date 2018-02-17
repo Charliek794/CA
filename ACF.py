@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Dec 16 15:51:01 2017
-
 Automata Celular Functions
-
-@author: Kopaka
+v0.1.2
+@author: Carlos Villagrasa Guerrero
 """
 
 from random import randint
@@ -56,4 +54,8 @@ def inicial_set(Data_Especies, N_Nichos, N_Especies, Especies_Nicho):
             k = randint(0, N_Nichos-1)
             Especies_Nicho[k,i,0] = Especies_Nicho[k,i,0]+1
 
+def refresh_total(Display_Table, N_Nichos, N_Especies, Especies_Nicho):
+    for i in range(0,N_Nichos):
+        change_item(Display_Table,N_Especies,i + 4,str(Especies_Nicho[i,:,:].sum(axis = 0).sum()))
+    change_item(Display_Table,N_Especies,3,str(Especies_Nicho[:,:,:].sum(axis = 0).sum()))
     

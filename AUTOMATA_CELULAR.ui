@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Autómata Celular v0.1.1</string>
+   <string>Autómata Celular v0.1.2</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -193,12 +193,11 @@
        <bool>true</bool>
       </property>
       <property name="rowCount">
-       <number>3</number>
+       <number>2</number>
       </property>
       <property name="columnCount">
        <number>8</number>
       </property>
-      <row/>
       <row/>
       <row/>
       <column>
@@ -263,7 +262,7 @@
       </item>
       <item row="0" column="4">
        <property name="text">
-        <string>qwer</string>
+        <string/>
        </property>
       </item>
       <item row="0" column="5">
@@ -298,7 +297,7 @@
       </item>
       <item row="1" column="3">
        <property name="text">
-        <string>10</string>
+        <string>3</string>
        </property>
       </item>
       <item row="1" column="4">
@@ -308,55 +307,15 @@
       </item>
       <item row="1" column="5">
        <property name="text">
-        <string>asdf</string>
+        <string/>
        </property>
       </item>
       <item row="1" column="6">
        <property name="text">
-        <string>20</string>
+        <string>50</string>
        </property>
       </item>
       <item row="1" column="7">
-       <property name="text">
-        <string/>
-       </property>
-      </item>
-      <item row="2" column="0">
-       <property name="text">
-        <string>qwer_asdf</string>
-       </property>
-      </item>
-      <item row="2" column="1">
-       <property name="text">
-        <string>0</string>
-       </property>
-      </item>
-      <item row="2" column="2">
-       <property name="text">
-        <string>3</string>
-       </property>
-      </item>
-      <item row="2" column="3">
-       <property name="text">
-        <string>10</string>
-       </property>
-      </item>
-      <item row="2" column="4">
-       <property name="text">
-        <string/>
-       </property>
-      </item>
-      <item row="2" column="5">
-       <property name="text">
-        <string/>
-       </property>
-      </item>
-      <item row="2" column="6">
-       <property name="text">
-        <string>20</string>
-       </property>
-      </item>
-      <item row="2" column="7">
        <property name="text">
         <string/>
        </property>

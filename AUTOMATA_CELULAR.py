@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Main
-0.1.1
-@author: Kopaka
+v0.1.2
+@author: Carlos Villagrasa Guerrero
 """
 from PyQt5.QtCore import QT_VERSION_STR
 from PyQt5.Qt import PYQT_VERSION_STR
@@ -56,7 +56,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
         """
 
         #Adjust table to number of species
-        self.Display_Table.setRowCount(N_Especies)
+        self.Display_Table.setRowCount(N_Especies + 1)
         #Set matrix for data of the species
         Data_Especies = numpy.zeros((N_Especies, 8))
         
@@ -114,16 +114,21 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
         
         for i in range(0,N_Especies):
             # Potencial biótico
-            
+            """
             if Data_Especies[i,2] == -1:  #direct fitness + Indirect fitness del asociado
                 Temp = Data_Especies[i,0] * Data_Especies[i,1] # Falta el multiplicador
             else:
                 Temp = (Data_Especies[i,0] + Data_Especies[int(Data_Especies[i,2]),4]) * Data_Especies[i,1] # Falta el multiplicador
             ACF.change_item(self.Display_Table,i,1,str(Temp)) #actual
             ACF.change_item(self.Display_Table,i,2,str(Temp)) #acumulado
+            """
             for j in range(0, N_Nichos):
                 ACF.change_item(self.Display_Table,i,j+4,str(Especies_Nicho[j,i,0]))
             ACF.change_item(self.Display_Table,i,3,str(Especies_Nicho[:,i,:].sum(axis = 1).sum()))
+        
+        ACF.change_item(self.Display_Table,N_Especies,0,"Total")
+        
+        ACF.refresh_total(self.Display_Table, N_Nichos, N_Especies, Especies_Nicho)
         
         #Current generation
         self.GEN.display(1)
@@ -180,19 +185,21 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                             Especies_Nicho[i,j,1] = Especies_Nicho[i,j,1] + Especies_Nicho[i,j,0]
                             temp_sin_asociar[j] = 0
                             Especies_Nicho[i,int(Data_Especies[j,2]),2] = Especies_Nicho[i,int(Data_Especies[j,2]),2] + Especies_Nicho[i,j,0]
+                            Especies_Nicho[i,int(Data_Especies[j,2]),0] = Especies_Nicho[i,int(Data_Especies[j,2]),0] - Especies_Nicho[i,int(Data_Especies[j,2]),2]
                             temp_sin_asociar[int(Data_Especies[j,2])] = temp_sin_asociar[int(Data_Especies[j,2])] - Especies_Nicho[i,j,0]
                             Especies_Nicho[i,j,0] = 0
                         else:
                             Especies_Nicho[i,j,1] = Especies_Nicho[i,j,1] + temp_sin_asociar[int(Data_Especies[j,2])]
                             Especies_Nicho[i,j,0] = Especies_Nicho[i,j,0] - temp_sin_asociar[int(Data_Especies[j,2])]
                             Especies_Nicho[i,int(Data_Especies[j,2]),2] = Especies_Nicho[i,int(Data_Especies[j,2]),2] + temp_sin_asociar[int(Data_Especies[j,2])]
+                            Especies_Nicho[i,int(Data_Especies[j,2]),0] = Especies_Nicho[i,int(Data_Especies[j,2]),0] - Especies_Nicho[i,int(Data_Especies[j,2]),2]
                             temp_sin_asociar[j] = Especies_Nicho[i,j,0]
                             temp_sin_asociar[int(Data_Especies[j,2])] = 0
                     
                     #print("TEMPORAL_ESPECIE")
                     #print(str(temp_sin_asociar))
                     #print(str(Especies_Nicho))
-            #print("FIN DE ASO;AGR")
+            print("FIN DE ASO/AGR")
             #print(str(Especies_Nicho)) 
             
             """
@@ -236,7 +243,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                 #if numpy.argmax(Data_Especies[:,0]) == j:
                 #            Especies_Nicho[i,j,k] = int(Especies_Nicho[i,j,k]*(100-int(window.Deaths.toPlainText()))/100)
             
-            
+            print("FIN DE SG")
             """
             Alimentación
             """
@@ -246,25 +253,48 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                 Feeded = numpy.zeros((N_Especies,3))
 
                 while temp_rec > 0:
-
+                        
                     no_zero = numpy.nonzero(Especies_Nicho[i,:,:])
-
+                
                     if len(no_zero[0]) == 0:
                         break
-                    k = randint(0, len(no_zero[0])-1)
+                    k = 0
+                    A = randint(0, Especies_Nicho[i,:,:].sum(axis = 0).sum())
+                    T = int(Especies_Nicho[i,no_zero[0][k],no_zero[1][k]])
+                    """
+                    print("PPP")
+                    print(i)
+                    print(Especies_Nicho)
+                    print(Especies_Nicho[i,:,:].sum(axis = 0).sum())
+                    print(no_zero)
+                    print(A)
+                    print(T)
+                    """
+                    while A > T:
+                        k = k + 1
+                        T = T + int(Especies_Nicho[i,no_zero[0][k],no_zero[1][k]])
+                        """
+                        print("WWWW")
+                        print(k)
+                        print(A)
+                        print(T)
+                        """
+                    #k = randint(0, len(no_zero[0])-1)
                     if Especies_Nicho[i,no_zero[0][k],no_zero[1][k]]>0:
                         
                         
                         if no_zero[1][k] == 0: #individual
-                            temp_rec = temp_rec - int(Data_Especies[no_zero[0][k],0]*int(window.Reproduction.value())/100)
+                            temp_rec = temp_rec - int(Data_Especies[no_zero[0][k],0] * int(window.Reproduction.value())/100)
                         if no_zero[1][k] == 1: #asociación recipiente
-                            temp_rec = temp_rec - int(Data_Especies[no_zero[0][k],0]*int(window.Reproduction.value())/100)
+                            temp_rec = temp_rec - int(Data_Especies[no_zero[0][k],0] * int(window.Reproduction.value())/100)
                         if no_zero[1][k] == 2: #asociación actor
-                            temp_rec = temp_rec - int(Data_Especies[no_zero[0][k],4]*int(window.Reproduction.value())/100)
-                        if temp_rec > 0:
+                            temp_rec = temp_rec - int((Data_Especies[no_zero[0][k],4] + Data_Especies[no_zero[0][k],0]) * int(window.Reproduction.value())/100)
+                        if temp_rec >= 0:
                             Feeded[no_zero[0][k],no_zero[1][k]] = Feeded[no_zero[0][k],no_zero[1][k]] + 1
                             Especies_Nicho[i,no_zero[0][k],no_zero[1][k]] = Especies_Nicho[i,no_zero[0][k],no_zero[1][k]] - 1
                 Especies_Nicho[i,:,:] = Feeded
+                
+            print("FIN DE SI")
             """
             Reproducción
             
@@ -277,7 +307,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                     for k in range(0, 3):
                                             
                         if k == 0:
-                            
+                            print("IND")
                             for I in range(0,int(Especies_Nicho[i,j,k]*Data_Especies[j,0])):
                                 l = randint(-2, 3)
                                 if i + l >= N_Nichos:    
@@ -287,8 +317,9 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                                 else:
                                     temp_Especies[i + l,j,k] += 1
                                 
-                        if k == 1:
-                            for I in range(0,int(Especies_Nicho[i,j,k]*Data_Especies[j,0])):
+                        if k == 1 and Data_Especies[j,2] != -1:
+                            print("ASO REC")
+                            for I in range(0,int(Especies_Nicho[i,j,k] * (Data_Especies[j,0] + Data_Especies[int(Data_Especies[j,2]),4]))):
                                 l = randint(-2, 3)
                                 if i + l >= N_Nichos:    
                                     temp_Especies[i + l - N_Nichos,j,0] += 1
@@ -297,8 +328,9 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                                 else:
                                     temp_Especies[i + l,j,0] += 1
                                     
-                        if k == 2 and Data_Especies[j,3] != -1:
-                            for I in range(0,int(Especies_Nicho[i,j,k] * (Data_Especies[j,4] + Data_Especies[j,0]))):
+                        if k == 2:
+                            print("ASO ACT")
+                            for I in range(0,int(Especies_Nicho[i,j,k] * Data_Especies[j,0])):
                                 l = randint(-2, 3)
                                 if i + l >= N_Nichos:    
                                     temp_Especies[i + l - N_Nichos,j,0] += 1
@@ -310,13 +342,14 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             Especies_Nicho = temp_Especies
             #print("FIN DE GEN")
             #print(str(Especies_Nicho))
-
+            print("FIN DE REP")
             for i in range(0,N_Especies):
                 # Display species
                 for j in range(0, N_Nichos):
                     ACF.change_item(self.Display_Table,i,j+4,str(Especies_Nicho[j,i,0]))
                 ACF.change_item(self.Display_Table,i,3,str(Especies_Nicho[:,i,:].sum(axis = 1).sum()))
                 # Potencial biótico
+                """
                 if Data_Especies[i,2] == -1:  #direct fitness + Indirect fitness del asociado
                     
                     Temp = Data_Especies[i,0] * float(self.Display_Table.item(i,3).text()) # Falta el multiplicador
@@ -324,9 +357,12 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                 else:
                     Temp = (Data_Especies[i,0] + Data_Especies[int(Data_Especies[i,2]),4]) * float(self.Display_Table.item(i,3).text()) # Falta el multiplicador
                     Temp_Acc = (Data_Especies[i,0] + Data_Especies[int(Data_Especies[i,2]),4]) * float(self.Display_Table.item(i,2).text()) # Falta el multiplicador
-                ACF.change_item(self.Display_Table,i,1,str(Temp)) #Actual
-                ACF.change_item(self.Display_Table,i,2,str(Temp_Acc)) #Accumulado
+                """
+                #ACF.change_item(self.Display_Table,i,1,str(Temp)) #Actual
+                #ACF.change_item(self.Display_Table,i,2,str(Temp_Acc)) #Accumulado
                 
+            ACF.refresh_total(self.Display_Table, N_Nichos, N_Especies, Especies_Nicho)
+            
             #self.GEN.display(self.GEN.intValue() + 1)
         self.GEN.display(self.GEN.intValue() + self.GEN_STEP.value())
 
