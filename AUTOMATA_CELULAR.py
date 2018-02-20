@@ -17,7 +17,7 @@ from PyQt5 import QtCore, QtGui, uic, QtWidgets
 #import pyqtgraph as pg
 import numpy
 import ACF
-from random import randint
+from random import randint, sample
 
 qtMain = "AUTOMATA_CELULAR.ui" # Enter file here.
 qtSimulation = "SIMULATION.ui"
@@ -249,17 +249,24 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             """
 
             for i in range(0,N_Nichos):
+                
                 temp_rec = int(window.Resources.value())
                 Feeded = numpy.zeros((N_Especies,3))
+                print("NICHO")
+                print(int(Especies_Nicho[i,:,:].sum(axis = 0).sum()))
+                A = sample(range(1, int(Especies_Nicho[i,:,:].sum(axis = 0).sum()) + 1), int(Especies_Nicho[i,:,:].sum(axis = 0).sum()))
+                print(A)
+                print(Especies_Nicho[i,:,:])
+                j = 0
 
-                while temp_rec > 0:
+                while temp_rec > 0 and j < len(A):
                         
                     no_zero = numpy.nonzero(Especies_Nicho[i,:,:])
-                
+                    print(no_zero)
                     if len(no_zero[0]) == 0:
                         break
                     k = 0
-                    A = randint(0, Especies_Nicho[i,:,:].sum(axis = 0).sum())
+                    #A = randint(0, Especies_Nicho[i,:,:].sum(axis = 0).sum())
                     T = int(Especies_Nicho[i,no_zero[0][k],no_zero[1][k]])
                     """
                     print("PPP")
@@ -270,7 +277,9 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                     print(A)
                     print(T)
                     """
-                    while A > T:
+                    
+                    while A[j] > T:
+                        
                         k = k + 1
                         T = T + int(Especies_Nicho[i,no_zero[0][k],no_zero[1][k]])
                         """
@@ -280,6 +289,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                         print(T)
                         """
                     #k = randint(0, len(no_zero[0])-1)
+                    print(k)
                     if Especies_Nicho[i,no_zero[0][k],no_zero[1][k]]>0:
                         
                         
@@ -291,10 +301,12 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                             temp_rec = temp_rec - int((Data_Especies[no_zero[0][k],4] + Data_Especies[no_zero[0][k],0]) * int(window.Reproduction.value())/100)
                         if temp_rec >= 0:
                             Feeded[no_zero[0][k],no_zero[1][k]] = Feeded[no_zero[0][k],no_zero[1][k]] + 1
-                            Especies_Nicho[i,no_zero[0][k],no_zero[1][k]] = Especies_Nicho[i,no_zero[0][k],no_zero[1][k]] - 1
+                            #Especies_Nicho[i,no_zero[0][k],no_zero[1][k]] = Especies_Nicho[i,no_zero[0][k],no_zero[1][k]] - 1
+                    j = j +1
                 Especies_Nicho[i,:,:] = Feeded
                 
             print("FIN DE SI")
+            #print(Especies_Nicho)
             """
             Reproducción
             
@@ -307,7 +319,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                     for k in range(0, 3):
                                             
                         if k == 0:
-                            print("IND")
+                            
                             for I in range(0,int(Especies_Nicho[i,j,k]*Data_Especies[j,0])):
                                 l = randint(-2, 3)
                                 if i + l >= N_Nichos:    
@@ -318,7 +330,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                                     temp_Especies[i + l,j,k] += 1
                                 
                         if k == 1 and Data_Especies[j,2] != -1:
-                            print("ASO REC")
+                            
                             for I in range(0,int(Especies_Nicho[i,j,k] * (Data_Especies[j,0] + Data_Especies[int(Data_Especies[j,2]),4]))):
                                 l = randint(-2, 3)
                                 if i + l >= N_Nichos:    
@@ -329,7 +341,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                                     temp_Especies[i + l,j,0] += 1
                                     
                         if k == 2:
-                            print("ASO ACT")
+                            
                             for I in range(0,int(Especies_Nicho[i,j,k] * Data_Especies[j,0])):
                                 l = randint(-2, 3)
                                 if i + l >= N_Nichos:    
