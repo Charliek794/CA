@@ -35,6 +35,21 @@
       <attribute name="horizontalHeaderMinimumSectionSize">
        <number>49</number>
       </attribute>
+      <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="horizontalHeaderStretchLastSection">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="verticalHeaderVisible">
+       <bool>true</bool>
+      </attribute>
+      <attribute name="verticalHeaderCascadingSectionResizes">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="verticalHeaderShowSortIndicator" stdset="0">
+       <bool>false</bool>
+      </attribute>
       <column>
        <property name="text">
         <string>ESPECIE</string>
@@ -42,12 +57,12 @@
       </column>
       <column>
        <property name="text">
-        <string>POTENCIAL BIÓTICO</string>
+        <string>PRESIÓN INDIVIDUAL RELATIVA</string>
        </property>
       </column>
       <column>
        <property name="text">
-        <string>POTENCIAL BIÓTICO ACUMULADO</string>
+        <string>EFICACIA BIOLÓGICA INDIVIDUAL</string>
        </property>
       </column>
       <column>

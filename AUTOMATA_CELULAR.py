@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Main
-v0.1.4
+v0.1.5
 @author: Carlos Villagrasa Guerrero
 """
 from PyQt5.QtCore import QT_VERSION_STR
@@ -17,7 +17,8 @@ from PyQt5 import QtCore, QtGui, uic, QtWidgets
 #import pyqtgraph as pg
 import numpy
 import ACF
-from random import randint, sample
+import csv
+from random import randint, sample, shuffle
 
 qtMain = "AUTOMATA_CELULAR.ui" # Enter file here.
 qtSimulation = "SIMULATION.ui"
@@ -38,14 +39,19 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
     col6 -> Fenotipic flexibility
     col7 -> Agrupation new species
     """
-    global Data_Especies,Especies_Nicho, N_Nichos, N_Especies
+    global Data_Especies,Especies_Nicho, N_Nichos, N_Especies, Muertes
+    
+    """
+    Muertes 0 SG
+    Muertes 1 SI
+    """
     
     def __init__(self):
         super().__init__()
         #Set UI
         self.setupUi(self)
         
-        global Data_Especies,Especies_Nicho, N_Nichos, N_Especies
+        global Data_Especies,Especies_Nicho, N_Nichos, N_Especies, Muertes
         N_Especies = window.Data_Table.rowCount() - 1
         
         """
@@ -104,6 +110,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
         
         Especies_Nicho = numpy.zeros((N_Nichos,N_Especies,3))
         
+        
         #Generación inicial
         
         ACF.inicial_set(Data_Especies, N_Nichos, N_Especies, Especies_Nicho) 
@@ -141,7 +148,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
         
         
     def NEXT(self):
-        global Data_Especies,Especies_Nicho, N_Nichos
+        global Data_Especies,Especies_Nicho, N_Nichos, Muertes
         for t in range(0,self.GEN_STEP.value()):
             """
             Asociación agrupación
@@ -149,6 +156,8 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             Realizar una función para facilitar la lectura
             """
             print(t)
+            
+            Muertes = numpy.zeros((N_Nichos,N_Especies,2))
             
             self.Actual.setText("ASOCIACIÓN/AGRUPACIÓN")
             print(Especies_Nicho)
@@ -240,7 +249,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             
             
             print("SG")
-            print(Especies_Nicho)
+            #print(Especies_Nicho)
             for i in range(0,N_Nichos):
                 self.progressBar.setValue((i/N_Nichos)*100)
                 o = len(order) - 1
@@ -253,9 +262,11 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                         Random = randint(0, len(no_zero[0])-1)
                         if Especies_Nicho[i,order[o],Random] >= k:
                             Especies_Nicho[i,order[o],Random] = Especies_Nicho[i,order[o],Random] - k
+                            Muertes[i,order[o],0] += k
                             k = 0
                         else:
                             k = k - Especies_Nicho[i,order[o],Random]
+                            Muertes[i,order[o],0] += Especies_Nicho[i,order[o],Random]
                             Especies_Nicho[i,order[o],Random] = 0
                         no_zero = numpy.nonzero(Especies_Nicho[i,order[o],:2])
                     if k > 0:
@@ -267,13 +278,15 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                     if len(no_zero[0]) != 0:
                         if Especies_Nicho[i,order_if[o],2] >= k:
                             Especies_Nicho[i,order_if[o],2] = Especies_Nicho[i,order_if[o],2] - k
+                            Muertes[i,order_if[o],0] += k
                             k = 0
                         else:
                             k = k - Especies_Nicho[i,order_if[o],2]
+                            Muertes[i,order_if[o],0] += Especies_Nicho[i,order_if[o],Random]
                             Especies_Nicho[i,order[o],2] = 0
                     if k > 0:
                         o = o - 1
-            print(Especies_Nicho)
+            #print(Especies_Nicho)
                         
                     
             #k = window.Deaths.Value() * Especies_Nicho[:,:,:].sum(axis = 0).sum()            
@@ -296,60 +309,84 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             if window.Reproduction.value() != 0:
                 for i in range(0,N_Nichos):
                     self.progressBar.setValue((i/N_Nichos)*100)
-                    temp_rec = int(window.Resources.value())
+                    temp_rec = window.Resources.value()
                     Feeded = numpy.zeros((N_Especies,3))
-                    print("NICHO")
-                    print(int(Especies_Nicho[i,:,:].sum(axis = 0).sum()))
+                    
+                    no_zero = numpy.nonzero(Especies_Nicho[i,:,:])
+                    ORDER = []
+                    X = 0
+                    Y = 0
+
+                    for j in Especies_Nicho[i,:,:]:
+
+                        X = 0
+                        for l in j:
+
+                            ORDER += [X + 10*Y] * int(l)  
+                            X += 1
+
+                        Y += 1
+
+                    shuffle(ORDER)
+
+                    """
                     A = sample(range(1, int(Especies_Nicho[i,:,:].sum(axis = 0).sum()) + 1), int(Especies_Nicho[i,:,:].sum(axis = 0).sum()))
                     print(A)
                     print(Especies_Nicho[i,:,:])
                     j = 0
-    
-                    while temp_rec > 0 and j < len(A):
+                    """
+                    j = 0
+                    if len(ORDER) > 0:
+                        while temp_rec > 0 and j < len(ORDER):
+                            #and j < len(A):
+                            """    
+                            no_zero = numpy.nonzero(Especies_Nicho[i,:,:])
+                            print(no_zero)
+                            if len(no_zero[0]) == 0:
+                                break
+                            k = 0
+                            #A = randint(0, Especies_Nicho[i,:,:].sum(axis = 0).sum())
+                            T = int(Especies_Nicho[i,no_zero[0][k],no_zero[1][k]])
                             
-                        no_zero = numpy.nonzero(Especies_Nicho[i,:,:])
-                        print(no_zero)
-                        if len(no_zero[0]) == 0:
-                            break
-                        k = 0
-                        #A = randint(0, Especies_Nicho[i,:,:].sum(axis = 0).sum())
-                        T = int(Especies_Nicho[i,no_zero[0][k],no_zero[1][k]])
-                        """
-                        print("PPP")
-                        print(i)
-                        print(Especies_Nicho)
-                        print(Especies_Nicho[i,:,:].sum(axis = 0).sum())
-                        print(no_zero)
-                        print(A)
-                        print(T)
-                        """
-                        
-                        while A[j] > T:
-                            
-                            k = k + 1
-                            T = T + int(Especies_Nicho[i,no_zero[0][k],no_zero[1][k]])
-                            """
-                            print("WWWW")
-                            print(k)
+                            print("PPP")
+                            print(i)
+                            print(Especies_Nicho)
+                            print(Especies_Nicho[i,:,:].sum(axis = 0).sum())
+                            print(no_zero)
                             print(A)
                             print(T)
+                            
+                            
+                            while A[j] > T:
+                                
+                                k = k + 1
+                                T = T + int(Especies_Nicho[i,no_zero[0][k],no_zero[1][k]])
+                                
+                                print("WWWW")
+                                print(k)
+                                print(A)
+                                print(T)
+                            
                             """
-                        #k = randint(0, len(no_zero[0])-1)
-                        print(k)
-                        if Especies_Nicho[i,no_zero[0][k],no_zero[1][k]]>0:
-                            
-                            
-                            if no_zero[1][k] == 0: #individual
-                                temp_rec = temp_rec - int(Data_Especies[no_zero[0][k],0] * int(window.Reproduction.value())/100)
-                            if no_zero[1][k] == 1: #asociación recipiente
-                                temp_rec = temp_rec - int(Data_Especies[no_zero[0][k],0] * int(window.Reproduction.value())/100)
-                            if no_zero[1][k] == 2: #asociación actor
-                                temp_rec = temp_rec - int((Data_Especies[no_zero[0][k],4] + Data_Especies[no_zero[0][k],0]) * int(window.Reproduction.value())/100)
-                            if temp_rec >= 0:
-                                Feeded[no_zero[0][k],no_zero[1][k]] = Feeded[no_zero[0][k],no_zero[1][k]] + 1
-                                #Especies_Nicho[i,no_zero[0][k],no_zero[1][k]] = Especies_Nicho[i,no_zero[0][k],no_zero[1][k]] - 1
-                        j = j +1
-                    Especies_Nicho[i,:,:] = Feeded
+                            #k = randint(0, len(no_zero[0])-1)
+                            #print(k)
+
+                            if Especies_Nicho[i, int(ORDER[j] / 10), int(ORDER[j] % 10)] > 0:
+
+                                if ORDER[j] % 10 == 0: #individual
+                                    temp_rec = temp_rec - (Data_Especies[int(ORDER[j] / 10),0] * int(window.Reproduction.value())/100)
+                                if ORDER[j] % 10 == 1: #asociación recipiente
+                                    temp_rec = temp_rec - (Data_Especies[int(ORDER[j] / 10),0] * int(window.Reproduction.value())/100)
+                                if ORDER[j] % 10 == 2: #asociación actor
+                                    temp_rec = temp_rec - ((Data_Especies[int(ORDER[j] / 10),4] + Data_Especies[ORDER[j] // 10,0]) * int(window.Reproduction.value())/100)
+                                if temp_rec >= 0:
+                                    Feeded[ORDER[j] // 10,ORDER[j] % 10] = Feeded[ORDER[j] // 10,ORDER[j] % 10] + 1
+                                    #Especies_Nicho[i,no_zero[0][k],no_zero[1][k]] = Especies_Nicho[i,no_zero[0][k],no_zero[1][k]] - 1
+                            j = j +1
+                        
+                        Muertes[i,:,1] = Especies_Nicho[i,:,:].sum(axis = 1) - Feeded.sum(axis = 1)
+                        
+                        Especies_Nicho[i,:,:] = Feeded
                 
             print("FIN DE SI")
             #print(Especies_Nicho)
@@ -365,11 +402,15 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                 self.progressBar.setValue((i/N_Nichos)*100)
                 for j in range(0, N_Especies):
                     for k in range(0, 3):
-                                            
+                        
                         if k == 0:
                             
                             for I in range(0,int(Especies_Nicho[i,j,k]*Data_Especies[j,0])):
-                                l = randint(-2, 3)
+
+                                if N_Nichos > 1:
+                                    l = randint(-2, 2)
+                                else:
+                                    l = 0
                                 if i + l >= N_Nichos:    
                                     temp_Especies[i + l - N_Nichos,j,k] += 1
                                 elif i + l < 0:
@@ -380,7 +421,10 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                         if k == 1 and Data_Especies[j,2] != -1:
                             
                             for I in range(0,int(Especies_Nicho[i,j,k] * (Data_Especies[j,0] + Data_Especies[int(Data_Especies[j,2]),4]))):
-                                l = randint(-2, 3)
+                                if N_Nichos > 1:
+                                    l = randint(-2, 2)
+                                else:
+                                    l = 0
                                 if i + l >= N_Nichos:    
                                     temp_Especies[i + l - N_Nichos,j,0] += 1
                                 elif i + l < 0:
@@ -391,7 +435,10 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                         if k == 2:
                             
                             for I in range(0,int(Especies_Nicho[i,j,k] * Data_Especies[j,0])):
-                                l = randint(-2, 3)
+                                if N_Nichos > 1:
+                                    l = randint(-2, 2)
+                                else:
+                                    l = 0
                                 if i + l >= N_Nichos:    
                                     temp_Especies[i + l - N_Nichos,j,0] += 1
                                 elif i + l < 0:
@@ -403,11 +450,13 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             #print("FIN DE GEN")
             #print(str(Especies_Nicho))
             print("FIN DE REP")
+            print(Muertes)
             for i in range(0,N_Especies):
                 # Display species
                 for j in range(0, N_Nichos):
                     ACF.change_item(self.Display_Table,i,j+4,str(Especies_Nicho[j,i,0]))
                 ACF.change_item(self.Display_Table,i,3,str(Especies_Nicho[:,i,:].sum(axis = 1).sum()))
+                ACF.change_item(self.Display_Table,i,1,str(Muertes.sum(axis = 0)[i,1]/Muertes.sum(axis = 0)[i].sum(axis = 0)))
                 # Potencial biótico
                 """
                 if Data_Especies[i,2] == -1:  #direct fitness + Indirect fitness del asociado
@@ -439,6 +488,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.Data_Table.cellChanged.connect(self.data_modified)
         
         self.Start_Button.clicked.connect(self.Start)
+        self.Load_Button.clicked.connect(self.Load)
+        self.Save_Button.clicked.connect(self.Save)
         self.EXIT_Button.clicked.connect(self.EXIT)
        
     def data_modified(self):
@@ -542,6 +593,72 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         self.dialog = Sim() 
         self.dialog.show()
+        
+    def Load(self):
+        print("LOAD")
+        try:
+            with open('temp.csv', 'r', newline='') as csvfile:
+                spamreader = csv.reader(csvfile)
+                self.Data_Table.setRowCount(0)
+                ACF.new_row(self.Data_Table, self.Data_Table.rowCount())
+                i = 0
+                for row in spamreader:
+                    if i == 0:
+                        self.Nodes.setValue(int(row[8]))
+                        self.Resources.setValue(int(row[9]))
+                        self.Reproduction.setValue(int(row[10]))
+                        self.Deaths.setValue(int(row[11]))
+                    ACF.change_item(self.Data_Table,i,0,row[0])
+                    ACF.change_item(self.Data_Table,i,1,row[1])
+                    ACF.change_item(self.Data_Table,i,2,row[2])
+                    ACF.change_item(self.Data_Table,i,3,row[3])
+                    ACF.change_item(self.Data_Table,i,4,row[4])
+                    ACF.change_item(self.Data_Table,i,5,row[5])
+                    ACF.change_item(self.Data_Table,i,6,row[6])
+                    ACF.change_item(self.Data_Table,i,7,row[7])
+                    ACF.new_row(self.Data_Table, self.Data_Table.rowCount())
+                    i += 1
+                
+        except IOError:
+            QtWidgets.QMessageBox.about(self, "ERROR", "Oops! Something is wrong with the file. Try again...")
+    
+    def Save(self):
+        print("SAVE")
+        try:
+            with open('temp.csv', 'w', newline='') as csvfile:
+                spamwriter = csv.writer(csvfile)
+                for i in range(0,self.Data_Table.rowCount() - 1):
+                    print([self.Data_Table.item(i, 0).text()]  + 
+                                         [self.Data_Table.item(i, 1).text()]  +
+                                         [self.Data_Table.item(i, 2).text()]  +
+                                         [self.Data_Table.item(i, 3).text()]  +
+                                         [self.Data_Table.item(i, 4).text()]  +
+                                         [self.Data_Table.item(i, 5).text()]  +
+                                         [self.Data_Table.item(i, 6).text()]  +
+                                         [self.Data_Table.item(i, 7).text()])
+                    if i == 0:
+                        spamwriter.writerow([self.Data_Table.item(i, 0).text()]  + 
+                                             [self.Data_Table.item(i, 1).text()]  +
+                                             [self.Data_Table.item(i, 2).text()]  +
+                                             [self.Data_Table.item(i, 3).text()]  +
+                                             [self.Data_Table.item(i, 4).text()]  +
+                                             [self.Data_Table.item(i, 5).text()]  +
+                                             [self.Data_Table.item(i, 6).text()]  +
+                                             [self.Data_Table.item(i, 7).text()]  +
+                                             [self.Nodes.value()] + [self.Resources.value()] + 
+                                             [self.Reproduction.value()] + [self.Deaths.value()] )
+                        
+                    else:
+                        spamwriter.writerow([self.Data_Table.item(i, 0).text()]  + 
+                                             [self.Data_Table.item(i, 1).text()]  +
+                                             [self.Data_Table.item(i, 2).text()]  +
+                                             [self.Data_Table.item(i, 3).text()]  +
+                                             [self.Data_Table.item(i, 4).text()]  +
+                                             [self.Data_Table.item(i, 5).text()]  +
+                                             [self.Data_Table.item(i, 6).text()]  +
+                                             [self.Data_Table.item(i, 7).text()])
+        except IOError:
+            QtWidgets.QMessageBox.about(self, "ERROR", "Oops! Something is wrong with the file. Try again...")
         
     def EXIT(self):
         sys.exit(0)
