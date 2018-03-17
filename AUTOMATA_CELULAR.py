@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Main
-v0.1.5
+v0.1.6
 @author: Carlos Villagrasa Guerrero
 """
 from PyQt5.QtCore import QT_VERSION_STR
@@ -19,6 +19,8 @@ import numpy
 import ACF
 import csv
 from random import randint, sample, shuffle
+
+numpy.set_printoptions(threshold=numpy.inf)
 
 qtMain = "AUTOMATA_CELULAR.ui" # Enter file here.
 qtSimulation = "SIMULATION.ui"
@@ -104,10 +106,9 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
         Matrix of species
         0->Individuos
         1->Recipientes asociación
-        2->Agrupados (TO BE DELETED)
-        3->Actores asociación
+        2->Actores asociación
         """
-        
+        print(Data_Especies)
         Especies_Nicho = numpy.zeros((N_Nichos,N_Especies,3))
         
         
@@ -163,6 +164,70 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             print(Especies_Nicho)
             for i in range(0,N_Nichos):
                 self.progressBar.setValue((i/N_Nichos)*100)
+                
+                order1 = ACF.random_order(Especies_Nicho[i,:,:])
+                temp_sin_asociar = Especies_Nicho[i,:,0].copy()
+                
+                k = 0
+                print("AGR")
+                if len(order1) > 0:
+                    while k < len(order1):
+                        j = int(order1[k] / 10)
+                        #print(j)
+                        if Data_Especies[j,3] != -1 and temp_sin_asociar[j] > 0 and (Data_Especies[j,6] == 0 or Data_Especies[j,5] >= int(window.Deaths.toPlainText())): #Agrupación                
+                        
+                            if temp_sin_asociar[int(Data_Especies[j,3])]-Especies_Nicho[i,j,0] > 0:
+                                Especies_Nicho[i,int(Data_Especies[j,7]),0] = Especies_Nicho[i,int(Data_Especies[j,7]),0] + Especies_Nicho[i,j,0]
+                                
+                                Especies_Nicho[i,int(Data_Especies[j,3]),0] = temp_sin_asociar[int(Data_Especies[j,3])] - Especies_Nicho[i,j,0]
+                                temp_sin_asociar[int(Data_Especies[j,3])] = temp_sin_asociar[int(Data_Especies[j,3])] - Especies_Nicho[i,j,0]
+                                
+                                Especies_Nicho[i,j,0] = 0
+                                temp_sin_asociar[j] = 0
+                            else:
+                                Especies_Nicho[i,int(Data_Especies[j,7]),0] = Especies_Nicho[i,int(Data_Especies[j,7]),0] + temp_sin_asociar[int(Data_Especies[j,3])]
+                                Especies_Nicho[i,int(Data_Especies[j,3]),0] = 0
+                                Especies_Nicho[i,j,0] = Especies_Nicho[i,j,0] - temp_sin_asociar[int(Data_Especies[j,3])]
+                                temp_sin_asociar[j] = Especies_Nicho[i,j,0]
+                                temp_sin_asociar[int(Data_Especies[j,3])] = 0
+                        else:
+                            #REVISAR
+                            Especies_Nicho[i,j,0] = Especies_Nicho[i,j,0] + Especies_Nicho[i,j,2]
+                            Especies_Nicho[i,int(Data_Especies[j,3]),0] = Especies_Nicho[i,int(Data_Especies[j,3]),0] + Especies_Nicho[i,j,2]
+                            Especies_Nicho[i,j,2] = 0
+                        
+                        k = k +1
+                        
+                order2 = ACF.random_order(Especies_Nicho[i,:,:])
+                temp_sin_asociar = Especies_Nicho[i,:,0].copy()
+                
+                k = 0
+                print("ASO")
+                if len(order2) > 0:
+                    while k < len(order2):
+                        j = int(order2[k] / 10)
+                        
+                        if Data_Especies[j,2] != -1 and temp_sin_asociar[j] > 0: #Asociación
+                            if temp_sin_asociar[int(Data_Especies[j,2])] > 0:
+                                Especies_Nicho[i,j,1] += 1
+                                temp_sin_asociar[j] -= 1
+                                Especies_Nicho[i,int(Data_Especies[j,2]),2] += 1 
+                                Especies_Nicho[i,int(Data_Especies[j,2]),0] -= 1
+                                temp_sin_asociar[int(Data_Especies[j,2])] -= 1
+                                Especies_Nicho[i,j,0] -= 1 
+                        
+                        k = k +1
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                """
                 temp_sin_asociar = Especies_Nicho[i,:,0].copy()
                 #print("TEMPORAL")
                 #print(str(temp_sin_asociar))
@@ -211,14 +276,16 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                     #print("TEMPORAL_ESPECIE")
                     #print(str(temp_sin_asociar))
                     #print(str(Especies_Nicho))
+                """
             print("FIN DE ASO/AGR")
             print(Especies_Nicho)
+            #print(Especies_Nicho)
             #print(str(Especies_Nicho)) 
             
             """
             Selección de grupo
             """
-            
+            #print("SG")
             #}Ordenar por la proporción direct fitness/indirect fitness
             self.Actual.setText("SELECCIÓN DE GRUPO")
 
@@ -248,31 +315,34 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             
             
             
-            print("SG")
+            
             #print(Especies_Nicho)
             for i in range(0,N_Nichos):
+                print(i)
                 self.progressBar.setValue((i/N_Nichos)*100)
                 o = len(order) - 1
                 k = window.Deaths.value()/100 * Especies_Nicho[i,:,:].sum(axis = 0).sum()
                 k = math.ceil(k)
-                #print(k)
+                
                 while o >= 0 and k > 0:
+                    
                     no_zero = numpy.nonzero(Especies_Nicho[i,order[o],:2])
                     while len(no_zero[0]) != 0 and k > 0:
                         Random = randint(0, len(no_zero[0])-1)
-                        if Especies_Nicho[i,order[o],Random] >= k:
-                            Especies_Nicho[i,order[o],Random] = Especies_Nicho[i,order[o],Random] - k
+                        
+                        if Especies_Nicho[i,order[o],no_zero[0][Random]] >= k:
+                            Especies_Nicho[i,order[o],no_zero[0][Random]] = Especies_Nicho[i,order[o],no_zero[0][Random]] - k
                             Muertes[i,order[o],0] += k
                             k = 0
                         else:
-                            k = k - Especies_Nicho[i,order[o],Random]
-                            Muertes[i,order[o],0] += Especies_Nicho[i,order[o],Random]
-                            Especies_Nicho[i,order[o],Random] = 0
+                            k = k - Especies_Nicho[i,order[o],no_zero[0][Random]]
+                            Muertes[i,order[o],0] += Especies_Nicho[i,order[o],no_zero[0][Random]]
+                            Especies_Nicho[i,order[o],no_zero[0][Random]] = 0
                         no_zero = numpy.nonzero(Especies_Nicho[i,order[o],:2])
                     if k > 0:
                         o = o - 1
                 o = len(order_if) - 1
-                #print(k)
+                print(k)
                 while o >= 0 and k > 0:
                     no_zero = numpy.nonzero(Especies_Nicho[i,order_if[o],2])
                     if len(no_zero[0]) != 0:
@@ -286,7 +356,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                             Especies_Nicho[i,order[o],2] = 0
                     if k > 0:
                         o = o - 1
-            #print(Especies_Nicho)
+            print(Especies_Nicho)
                         
                     
             #k = window.Deaths.Value() * Especies_Nicho[:,:,:].sum(axis = 0).sum()            
@@ -312,23 +382,10 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                     temp_rec = window.Resources.value()
                     Feeded = numpy.zeros((N_Especies,3))
                     
-                    no_zero = numpy.nonzero(Especies_Nicho[i,:,:])
-                    ORDER = []
-                    X = 0
-                    Y = 0
-
-                    for j in Especies_Nicho[i,:,:]:
-
-                        X = 0
-                        for l in j:
-
-                            ORDER += [X + 10*Y] * int(l)  
-                            X += 1
-
-                        Y += 1
-
-                    shuffle(ORDER)
-
+                    #no_zero = numpy.nonzero(Especies_Nicho[i,:,:])
+                    
+                    ORDER = ACF.random_order(Especies_Nicho[i,:,:])
+                    
                     """
                     A = sample(range(1, int(Especies_Nicho[i,:,:].sum(axis = 0).sum()) + 1), int(Especies_Nicho[i,:,:].sum(axis = 0).sum()))
                     print(A)
@@ -597,7 +654,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def Load(self):
         print("LOAD")
         try:
-            with open('temp.csv', 'r', newline='') as csvfile:
+            with open(self.CSV_NAME.text() + '.csv', 'r', newline='') as csvfile:
                 spamreader = csv.reader(csvfile)
                 self.Data_Table.setRowCount(0)
                 ACF.new_row(self.Data_Table, self.Data_Table.rowCount())
@@ -625,7 +682,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def Save(self):
         print("SAVE")
         try:
-            with open('temp.csv', 'w', newline='') as csvfile:
+            with open(self.CSV_NAME.text() + '.csv', 'w', newline='') as csvfile:
                 spamwriter = csv.writer(csvfile)
                 for i in range(0,self.Data_Table.rowCount() - 1):
                     print([self.Data_Table.item(i, 0).text()]  + 

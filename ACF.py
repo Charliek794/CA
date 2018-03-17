@@ -1,12 +1,31 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Functions
-v0.1.5
+v0.1.6
 @author: Carlos Villagrasa Guerrero
 """
 
-from random import randint
+from random import randint, shuffle
 from PyQt5 import QtCore, QtGui, uic, QtWidgets
+
+def random_order(ESPECIE):
+    
+    ORDER = []
+    X = 0
+    Y = 0
+
+    for j in ESPECIE:
+
+       X = 0
+       for l in j:
+
+           ORDER += [X + 10*Y] * int(l)  
+           X += 1
+
+       Y += 1
+
+    shuffle(ORDER)
+    return ORDER
 
 def change_item(Data_Table,x,y,text):
     item = QtWidgets.QTableWidgetItem()           
