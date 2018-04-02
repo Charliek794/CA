@@ -114,7 +114,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
         2->Actores asociación
         """
         print(Data_Especies)
-        Especies_Nicho = numpy.zeros((N_Nichos,N_Especies,4))
+        Especies_Nicho = numpy.zeros((N_Nichos,N_Especies,4), dtype=numpy.int)
         
         
         #Generación inicial
@@ -148,25 +148,70 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
         #Next step button
         self.NEXT_Button.clicked.connect(self.NEXT)
         #self.MUT_Button.clicked.connect(self.MUT)
+        print("DATOS")
+        try:
+            with open(window.CSV_NAME.text() + '_datos.csv', 'w', newline='') as csvfile: 
+                spamwriter = csv.writer(csvfile)
+                for i in range(0,len(Data_Especies[:,0])):
+                    spamwriter.writerow(Data_Especies[i,:])
+        except IOError:
+            QtWidgets.QMessageBox.about(self, "ERROR", "Oops! Something is wrong with the file. Try again...")
+       
+        print("RESULTADOS")    
+        try:
+            with open(window.CSV_NAME.text() + '_resultados.csv', 'w', newline='') as csvfile:
+                spamwriter = csv.writer(csvfile)
+                spamwriter.writerow(['GENERACIÓN INICIAL'])
+                spamwriter.writerow(['--------------------------------'])
+                for i in range(0,N_Especies):
+                    spamwriter.writerow([self.Display_Table.item(i, 0).text()] +
+                                        ['nan'] +
+                                        [self.Display_Table.item(i, 3).text()])
+        except IOError:
+            QtWidgets.QMessageBox.about(self, "ERROR", "Oops! Something is wrong with the file. Try again...")
+                
+        print("NICHOS")    
+        try:
+            with open(window.CSV_NAME.text() + '_nichos.csv', 'w', newline='') as csvfile:
+                spamwriter = csv.writer(csvfile)
+                spamwriter.writerow(['GENERACIÓN INICIAL'])
+                spamwriter.writerow(['--------------------------------'])
+                for i in range(0,len(Especies_Nicho[:,0,0])): 
+                    spamwriter.writerow(['NICHO ' + str(i)])
+                    spamwriter.writerow(['--------------------------------'])
+                    for j in range(0,len(Especies_Nicho[0,:,0])):
+                        spamwriter.writerow(['ESPECIE ' + str(j)])
+                        spamwriter.writerow(Especies_Nicho[i,j,:])
+        except IOError:
+            QtWidgets.QMessageBox.about(self, "ERROR", "Oops! Something is wrong with the file. Try again...")
         
+        f = open("out.txt",'w')
+        f.close()
     #def MUT(self):        
         
         
         
     def NEXT(self):
+        
+        
         global Data_Especies,Especies_Nicho, N_Nichos, Muertes
         for t in range(0,self.GEN_STEP.value()):
+            f = open("out.txt",'a')
+            
             """
             Asociación agrupación
             Actualmente en orden de índice ( TBU - orden aleatorio )
             Realizar una función para facilitar la lectura
             """
-            print(t)
-            
+            print(t, file = f)
+            print("GENERACIÓN " + str(self.GEN.intValue()), file = f)
+            print("--------------------------------------------------------------------------------------------", file = f)
             Muertes = numpy.zeros((N_Nichos,N_Especies,2))
+            Eficacia = numpy.zeros((N_Nichos,N_Especies,4))
+            E_Total = 0
             
             self.Actual.setText("ASOCIACIÓN/AGRUPACIÓN")
-            print(Especies_Nicho)
+            print(Especies_Nicho, file = f)
             for i in range(0,N_Nichos):
                 self.progressBar.setValue((i/N_Nichos)*100)
                 
@@ -174,7 +219,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                 temp_sin_asociar = Especies_Nicho[i,:,0].copy()
                 
                 k = 0
-                print("AGR")
+                print("AGR", file = f)
                 if len(order1) > 0:
                     while k < len(order1):
                         j = int(order1[k] / 10)
@@ -212,7 +257,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                 temp_sin_asociar = Especies_Nicho[i,:,0].copy()
                 
                 k = 0
-                print("ASO")
+                print("ASO", file = f)
                 if len(order2) > 0:
                     while k < len(order2):
                         j = int(order2[k] / 10)
@@ -296,11 +341,46 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                     #print(str(temp_sin_asociar))
                     #print(str(Especies_Nicho))
                 """
-            print("FIN DE ASO/AGR")
-            print(Especies_Nicho)
+            print("FIN DE ASO/AGR", file = f)
+            print(Especies_Nicho, file = f)
             #print(Especies_Nicho)
             #print(str(Especies_Nicho)) 
             
+            """
+            Cálculo de E
+            """
+            """
+            CORREGIR
+            for i in range(0,N_Nichos):
+                E_Total = 0
+                for j in range(0,N_Especies):
+                    Eficacia[i,j,0] = Especies_Nicho[i,j,0]
+                    Eficacia[i,j,1] = Especies_Nicho[i,j,1]
+                    Eficacia[i,j,2] = Data_Especies[i,0]/(Data_Especies[i,0]+Data_Especies[i,4]) * Especies_Nicho[i,j,2]
+                    Eficacia[i,j,3] = Data_Especies[i,0]/(Data_Especies[i,0]+Data_Especies[i,4]) * Especies_Nicho[i,j,3]
+                    E_Total += Eficacia[i,j,:].sum()
+                #print(Eficacia, file = f)
+                for j in range(0,N_Especies):
+                    Eficacia[i,j,0] = Eficacia[i,j,0]/E_Total
+                    Eficacia[i,j,1] = Eficacia[i,j,1]/E_Total
+                    Eficacia[i,j,2] = Eficacia[i,j,2]/E_Total
+                    Eficacia[i,j,3] = Eficacia[i,j,3]/E_Total
+            """
+            T = numpy.zeros((N_Especies))
+            """
+            for i in range(0,N_Especies): 
+
+                for j in range(0, N_Nichos):
+                    
+                    T[i] += (Eficacia[j,i,0] * Especies_Nicho[j,i,0] +
+                         Eficacia[j,i,1] * Especies_Nicho[j,i,1] +
+                         Eficacia[j,i,2] * Especies_Nicho[j,i,2] +
+                         Eficacia[j,i,3] * Especies_Nicho[j,i,3])
+
+                T[i] = T[i]/Especies_Nicho[:,i,:].sum(axis = 1).sum() 
+            print("EFICACIA", file = f)
+            print(Eficacia, file = f)
+            """
             """
             Selección de grupo
             """
@@ -311,35 +391,41 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             
             order_if = numpy.argsort(Data_Especies[:,0]/Data_Especies[:,4])
             order = numpy.argsort(Data_Especies[:,0])
-
+            
+            print(order_if, file = f)    
+            print(order, file = f)
 
             T_min = 0
             T_max = 0
             for i in range(1,len(order_if)):
                 #print(order_if[i])
-                if (Data_Especies[i, 0]/Data_Especies[i, 4]) < Data_Especies[i - 1, 0]/Data_Especies[i - 1, 4] or i + 1 == len(order_if):
-                    if i + 1 == len(order_if):
-                        T_max = i
+                if (Data_Especies[i, 0]/Data_Especies[i, 4]) > Data_Especies[i - 1, 0]/Data_Especies[i - 1, 4]:
+                    
                     shuffle(order_if[T_min:(T_max+1)])
                     T_min = i
                     T_max = i
+                if i + 1 == len(order) and (Data_Especies[i, 0]/Data_Especies[i, 4]) == Data_Especies[i - 1, 0]/Data_Especies[i - 1, 4]:  
+                    T_max = i
+                    shuffle(order[T_min:(T_max+1)])
                 else:
                     T_max = i
 
             T_min = 0
             T_max = 0
             for i in range(1,len(order)):
-                if (Data_Especies[i, 0]/Data_Especies[i, 4]) < Data_Especies[i - 1, 0]/Data_Especies[i - 1, 4] or i + 1 == len(order):
-                    if i + 1 == len(order):
-                        T_max = i
+                if (Data_Especies[i, 0]) > Data_Especies[i - 1, 0]:
+                    
                     shuffle(order[T_min:(T_max+1)])
                     T_min = i
                     T_max = i
+                if i + 1 == len(order) and (Data_Especies[i, 0]) == Data_Especies[i - 1, 0]:  
+                    T_max = i
+                    shuffle(order[T_min:(T_max+1)])
                 else:
                     T_max = i
-            print("reordenado")
-            print(order_if)    
-            print(order) 
+            print("reordenado", file = f)
+            print(order_if, file = f)    
+            print(order, file = f) 
             
             
             for i in range(0,N_Nichos):
@@ -350,7 +436,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                 k = math.ceil(k)
                 
                 while o >= 0 and k > 0: #individuos y recipientes
-                    if Data_Especies[order[o],8] == -1:
+                    if Data_Especies[order[o],8] != -2:
                         no_zero = numpy.nonzero(Especies_Nicho[i,order[o],:2])
                         while len(no_zero[0]) != 0 and k > 0:
                             Random = randint(0, len(no_zero[0])-1)
@@ -369,7 +455,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                 o = len(order_if) - 1
                 #print(k)
                 while o >= 0 and k > 0: # actores y reciprocos
-                    if Data_Especies[order[o],8] == -1:
+                    if Data_Especies[order[o],8] != -2:
                         no_zero = numpy.nonzero(Especies_Nicho[i,order_if[o],2:])
                         while len(no_zero[0]) != 0 and k > 0:
                             Random = randint(0, len(no_zero[0])-1)
@@ -384,7 +470,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                             no_zero = numpy.nonzero(Especies_Nicho[i,order_if[o],2:])
                     if k > 0:
                         o = o - 1
-                       
+                """       
                 o = len(order) - 1  
                 while o >= 0 and k > 0: #individuos y recipientes agrupados
                     if Data_Especies[order[o],8] != -1:
@@ -421,8 +507,8 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                             no_zero = numpy.nonzero(Especies_Nicho[i,order_if[o],2:])
                     if k > 0:
                         o = o - 1
-                
-            print(Especies_Nicho)
+                """
+            print(Especies_Nicho, file = f)
                         
                     
             #k = window.Deaths.Value() * Especies_Nicho[:,:,:].sum(axis = 0).sum()            
@@ -437,7 +523,8 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                 #if numpy.argmax(Data_Especies[:,0]) == j:
                 #            Especies_Nicho[i,j,k] = int(Especies_Nicho[i,j,k]*(100-int(window.Deaths.toPlainText()))/100)
             
-            print("FIN DE SG")
+            print("FIN DE SG", file = f)
+            print(Especies_Nicho, file = f)
             """
             Alimentación
             """
@@ -471,8 +558,8 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                         
                         Especies_Nicho[i,:,:] = Feeded
                 
-            print("FIN DE SI")
-            print(Especies_Nicho)
+            print("FIN DE SI", file = f)
+            print(Especies_Nicho, file = f)
             """
             Reproducción
             
@@ -532,15 +619,23 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             Especies_Nicho = temp_Especies
             #print("FIN DE GEN")
             #print(str(Especies_Nicho))
-            print("FIN DE REP")
-            print(Muertes)
-            print(Especies_Nicho)
+            print("FIN DE REP", file = f)
+            print(Especies_Nicho, file = f)
+            print("MUERTES", file = f)
+            print(Muertes, file = f)
+            #print(Especies_Nicho)
+                
+
+            
             for i in range(0,N_Especies):
                 # Display species
                 for j in range(0, N_Nichos):
                     ACF.change_item(self.Display_Table,i,j+4,str(Especies_Nicho[j,i,0]))
                 ACF.change_item(self.Display_Table,i,3,str(Especies_Nicho[:,i,:].sum(axis = 1).sum()))
                 ACF.change_item(self.Display_Table,i,1,str(Muertes.sum(axis = 0)[i,1]/Muertes.sum(axis = 0)[i].sum(axis = 0)))
+                
+                    
+                ACF.change_item(self.Display_Table,i,2,str(T[i]))
                 # Potencial biótico
                 """
                 if Data_Especies[i,2] == -1:  #direct fitness + Indirect fitness del asociado
@@ -557,8 +652,40 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             ACF.refresh_total(self.Display_Table, N_Nichos, N_Especies, Especies_Nicho)
             self.Actual.setText("")
             self.progressBar.setValue(0)
-            self.GEN.display(self.GEN.intValue() + 1)
+            
             app.processEvents()
+            
+            print("RESULTADOS", file = f)    
+            try:
+                with open(window.CSV_NAME.text() + '_resultados.csv', 'a', newline='') as csvfile:
+                    spamwriter = csv.writer(csvfile)
+                    spamwriter.writerow(['GENERACIÓN ' + str(self.GEN.intValue())])
+                    spamwriter.writerow(['--------------------------------'])
+                    for i in range(0,N_Especies):
+                        
+                        spamwriter.writerow([self.Display_Table.item(i, 0).text()] +
+                                            [self.Display_Table.item(i, 1).text()] +
+                                            [self.Display_Table.item(i, 3).text()])
+            except IOError:
+                QtWidgets.QMessageBox.about(self, "ERROR", "Oops! Something is wrong with the file. Try again...")
+                
+            print("NICHOS", file = f)    
+            try:
+                with open(window.CSV_NAME.text() + '_nichos.csv', 'a', newline='') as csvfile:
+                    spamwriter = csv.writer(csvfile)
+                    spamwriter.writerow(['GENERACIÓN ' + str(self.GEN.intValue())])
+                    spamwriter.writerow(['--------------------------------'])
+                    for i in range(0,len(Especies_Nicho[:,0,0])): 
+                        spamwriter.writerow(['NICHO ' + str(i)])
+                        spamwriter.writerow(['--------------------------------'])
+                        for j in range(0,len(Especies_Nicho[0,:,0])):
+                            spamwriter.writerow(['ESPECIE ' + str(j)])
+                            spamwriter.writerow(Especies_Nicho[i,j,:])
+            except IOError:
+                QtWidgets.QMessageBox.about(self, "ERROR", "Oops! Something is wrong with the file. Try again...")
+                
+            self.GEN.display(self.GEN.intValue() + 1)
+            f.close()
         #self.GEN.display(self.GEN.intValue() + self.GEN_STEP.value())
 
 class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
