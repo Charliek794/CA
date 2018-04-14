@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Autómata Celular v0.1.7</string>
+   <string>Autómata Celular v0.2.0</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -101,8 +101,11 @@
        <number>0</number>
       </property>
       <property name="columnCount">
-       <number>8</number>
+       <number>7</number>
       </property>
+      <attribute name="horizontalHeaderDefaultSectionSize">
+       <number>140</number>
+      </attribute>
       <column>
        <property name="text">
         <string>NOMBRE</string>
@@ -135,12 +138,7 @@
       </column>
       <column>
        <property name="text">
-        <string>OPTIMISMO</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>FLEXIBILIDAD FENOTÍPICA</string>
+        <string>FLEXIBILIDAD</string>
        </property>
       </column>
      </widget>

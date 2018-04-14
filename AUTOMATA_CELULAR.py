@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Main
-v0.1.7
+v0.2.0
 @author: Carlos Villagrasa Guerrero
 """
 from PyQt5.QtCore import QT_VERSION_STR
@@ -37,9 +37,10 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
     col2 -> Asociation
     col3 -> Agrupation partner
     col4 -> Indirect fitness
-    col5 -> Optimism
-    col6 -> Fenotipic flexibility
+    col5 -> Fenotipic flexibility
+    col6 -> -
     col7 -> Agrupation new species
+    col8 -> Parent for agrupation
     """
     global Data_Especies,Especies_Nicho, N_Nichos, N_Especies, Muertes
     
@@ -52,17 +53,17 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
         super().__init__()
         #Set UI
         self.setupUi(self)
-        
         global Data_Especies,Especies_Nicho, N_Nichos, N_Especies, Muertes
         N_Especies = window.Data_Table.rowCount() - 1
-        
+        #Number of niches?
+        N_Nichos = window.Nodes.value()
+        Muertes = numpy.zeros((N_Nichos,N_Especies,2))
         """
         # create plot
         plt = pg.plot()
         plt.showGrid(x=True,y=True)
         plt.addLegend()
         """
-
         #Adjust table to number of species
         self.Display_Table.setRowCount(N_Especies + 1)
         #Set matrix for data of the species
@@ -70,7 +71,8 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
         
         for i in range(0,N_Especies):
             Data_Especies[i,8] = -1
-        
+            Data_Especies[i,6] = -1
+            
         #Get data for the species
         for i in range(0,N_Especies):
             #Set name on the table
@@ -99,14 +101,8 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                 Data_Especies[i,7] = -1
         
             Data_Especies[i,5] = int(window.Data_Table.item(i,6).text())
-            
-            if window.Data_Table.item(i,7).text():
-                Data_Especies[i,6] = 1
-            else:
-                Data_Especies[i,6] = 0
-           
-        #Number of niches?
-        N_Nichos = window.Nodes.value()
+             
+        
         """
         Matrix of species
         0->Individuos
@@ -206,7 +202,12 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             print(t, file = f)
             print("GENERACIÓN " + str(self.GEN.intValue()), file = f)
             print("--------------------------------------------------------------------------------------------", file = f)
-            Muertes = numpy.zeros((N_Nichos,N_Especies,2))
+            """
+            Muertes
+            0 -> SG
+            1 -> SI
+            """
+            
             Eficacia = numpy.zeros((N_Nichos,N_Especies,4))
             E_Total = 0
             
@@ -217,33 +218,39 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                 
                 order1 = ACF.random_order(Especies_Nicho[i,:,:])
                 temp_sin_asociar = Especies_Nicho[i,:,0].copy()
-                
                 k = 0
                 print("AGR", file = f)
                 if len(order1) > 0:
                     while k < len(order1):
                         j = int(order1[k] / 10)
                         #print(j)
-                        if Data_Especies[j,3] != -1 and temp_sin_asociar[j] > 0 and (Data_Especies[j,6] == 0 or Data_Especies[j,5] >= int(window.Deaths.toPlainText())): #Agrupación                
-                            if int(Data_Especies[j,3]) != j:
-                                if temp_sin_asociar[int(Data_Especies[j,3])]-Especies_Nicho[i,j,0] > 0:
-                                    Especies_Nicho[i,int(Data_Especies[j,7]),0] = Especies_Nicho[i,int(Data_Especies[j,7]),0] + Especies_Nicho[i,j,0]
-                                    
-                                    Especies_Nicho[i,int(Data_Especies[j,3]),0] = temp_sin_asociar[int(Data_Especies[j,3])] - Especies_Nicho[i,j,0]
-                                    temp_sin_asociar[int(Data_Especies[j,3])] = temp_sin_asociar[int(Data_Especies[j,3])] - Especies_Nicho[i,j,0]
-                                    
-                                    Especies_Nicho[i,j,0] = 0
-                                    temp_sin_asociar[j] = 0
-                                else:
-                                    Especies_Nicho[i,int(Data_Especies[j,7]),0] = Especies_Nicho[i,int(Data_Especies[j,7]),0] + temp_sin_asociar[int(Data_Especies[j,3])]
-                                    Especies_Nicho[i,int(Data_Especies[j,3]),0] = 0
-                                    Especies_Nicho[i,j,0] = Especies_Nicho[i,j,0] - temp_sin_asociar[int(Data_Especies[j,3])]
-                                    temp_sin_asociar[j] = Especies_Nicho[i,j,0]
-                                    temp_sin_asociar[int(Data_Especies[j,3])] = 0
+                        #if randint(0, 100) * Muertes[i,j,1]/(Muertes[i,j,0] + Muertes[i,j,1]) <= Data_Especies[j,5]:
+                        if Data_Especies[j,3] != -1 and temp_sin_asociar[j] > 0:
+                            if Muertes[i,j,1] == 0 and Muertes[i,j,0] == 0:
+                                print("")
                             else:
-                                Especies_Nicho[i,int(Data_Especies[j,7]),0] = Especies_Nicho[i,int(Data_Especies[j,7]),0] + int(temp_sin_asociar[j]/2)
-                                Especies_Nicho[i,j,0] = Especies_Nicho[i,j,0] - int(temp_sin_asociar[j]/2)*2
-                                temp_sin_asociar[j] = Especies_Nicho[i,j,0]
+                                
+                                print('NICHO {0} and ESPECIE{1}'.format(i, j), file = f)
+                                R = randint(0, 100)
+                                print(R * Muertes[i,j,1]/(Muertes[i,j,0] + Muertes[i,j,1]), file = f)
+                                if R * Muertes[i,j,1]/(Muertes[i,j,0] + Muertes[i,j,1]) <= Data_Especies[j,5]: #Agrupación 
+                                    if int(Data_Especies[j,3]) != j:
+                                        if temp_sin_asociar[int(Data_Especies[j,3])] > 0:
+                                            Especies_Nicho[i,int(Data_Especies[j,7]),0] = Especies_Nicho[i,int(Data_Especies[j,7]),0] + 1
+                                            
+                                            Especies_Nicho[i,int(Data_Especies[j,3]),0] = Especies_Nicho[i,int(Data_Especies[j,3]),0] - 1
+                                            temp_sin_asociar[int(Data_Especies[j,3])] = temp_sin_asociar[int(Data_Especies[j,3])] - 1
+                                            
+                                            Especies_Nicho[i,j,0] = Especies_Nicho[i,j,0] - 1
+                                            temp_sin_asociar[j] = temp_sin_asociar[j] - 1
+                                    else:
+                                        if temp_sin_asociar[j] > 1:
+                                            Especies_Nicho[i,int(Data_Especies[j,7]),0] = Especies_Nicho[i,int(Data_Especies[j,7]),0] + 1
+                                            Especies_Nicho[i,j,0] = Especies_Nicho[i,j,0] - 2
+                                            temp_sin_asociar[j] = temp_sin_asociar[j] - 2    
+                        
+                            
+                            
                         """
                         else:
                             #REVISAR
@@ -387,7 +394,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
 
             #}Ordenar por la proporción direct fitness/indirect fitness
             self.Actual.setText("SELECCIÓN DE GRUPO")
-            
+            Muertes = numpy.zeros((N_Nichos,N_Especies,2))
             
             order_if = numpy.argsort(Data_Especies[:,0]/Data_Especies[:,4])
             order = numpy.argsort(Data_Especies[:,0])
@@ -397,33 +404,25 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
 
             T_min = 0
             T_max = 0
-            for i in range(1,len(order_if)):
-                #print(order_if[i])
-                if (Data_Especies[i, 0]/Data_Especies[i, 4]) > Data_Especies[i - 1, 0]/Data_Especies[i - 1, 4]:
-                    
+            for i in range(1,len(order_if)): 
+                if (Data_Especies[int(order_if[i]), 0]/Data_Especies[int(order_if[i]), 4]) > (Data_Especies[int(order_if[i - 1]), 0]/Data_Especies[int(order_if[i - 1]), 4]):               
                     shuffle(order_if[T_min:(T_max+1)])
                     T_min = i
                     T_max = i
-                if i + 1 == len(order) and (Data_Especies[i, 0]/Data_Especies[i, 4]) == Data_Especies[i - 1, 0]/Data_Especies[i - 1, 4]:  
-                    T_max = i
-                    shuffle(order[T_min:(T_max+1)])
                 else:
                     T_max = i
-
+            shuffle(order_if[T_min:(len(order_if)+1)])
             T_min = 0
             T_max = 0
-            for i in range(1,len(order)):
-                if (Data_Especies[i, 0]) > Data_Especies[i - 1, 0]:
-                    
+            for i in range(1,len(order)): 
+                if (Data_Especies[int(order[i]), 0]) > Data_Especies[int(order[i - 1]), 0]:   
                     shuffle(order[T_min:(T_max+1)])
                     T_min = i
                     T_max = i
-                if i + 1 == len(order) and (Data_Especies[i, 0]) == Data_Especies[i - 1, 0]:  
-                    T_max = i
-                    shuffle(order[T_min:(T_max+1)])
                 else:
                     T_max = i
-            print("reordenado", file = f)
+            shuffle(order[T_min:(len(order)+1)])
+            print("reordenado: 1->DF/IF; 2->DF", file = f)
             print(order_if, file = f)    
             print(order, file = f) 
             
@@ -508,7 +507,6 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                     if k > 0:
                         o = o - 1
                 """
-            print(Especies_Nicho, file = f)
                         
                     
             #k = window.Deaths.Value() * Especies_Nicho[:,:,:].sum(axis = 0).sum()            
@@ -562,9 +560,6 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             print(Especies_Nicho, file = f)
             """
             Reproducción
-            
-            Mínimo de nichos actualmente 3
-
             """
             self.Actual.setText("REPRODUCCIÓN")
             temp_Especies = numpy.zeros((N_Nichos,N_Especies,4), dtype=int)
@@ -574,52 +569,57 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                     for k in range(0, 4):
                         
                         if k == 0:
-                            
-                            for I in range(0,int(Especies_Nicho[i,j,k]*Data_Especies[j,0])):
-
-                                if N_Nichos > 1:
-                                    l = randint(-2, 2)
-                                else:
-                                    l = 0
-                                if i + l >= N_Nichos:    
-                                    temp_Especies[i + l - N_Nichos,j,k] += 1
-                                elif i + l < 0:
-                                    temp_Especies[i + l + N_Nichos,j,k] += 1
-                                else:
-                                    temp_Especies[i + l,j,k] += 1
-                                
+                            temp_Especies[i,j,0] += Especies_Nicho[i,j,k] * Data_Especies[j,0]
+   
                         if (k == 1 or k==3) and Data_Especies[j,2] != -1:
-                            
-                            for I in range(0,int(Especies_Nicho[i,j,k] * (Data_Especies[j,0] + Data_Especies[int(Data_Especies[j,2]),4]))):
-                                if N_Nichos > 1:
-                                    l = randint(-2, 2)
-                                else:
-                                    l = 0
-                                if i + l >= N_Nichos:    
-                                    temp_Especies[i + l - N_Nichos,j,0] += 1
-                                elif i + l < 0:
-                                    temp_Especies[i + l + N_Nichos,j,0] += 1
-                                else:
-                                    temp_Especies[i + l,j,0] += 1
-                                    
+                            temp_Especies[i,j,0] += Especies_Nicho[i,j,k] * (Data_Especies[j,0] + Data_Especies[int(Data_Especies[j,2]),4])
+      
                         if k == 2:
-                            
-                            for I in range(0,int(Especies_Nicho[i,j,k] * Data_Especies[j,0])):
-                                if N_Nichos > 1:
-                                    l = randint(-2, 2)
-                                else:
-                                    l = 0
-                                if i + l >= N_Nichos:    
-                                    temp_Especies[i + l - N_Nichos,j,0] += 1
-                                elif i + l < 0:
-                                    temp_Especies[i + l + N_Nichos,j,0] += 1
-                                else:
-                                    temp_Especies[i + l,j,0] += 1
+                            temp_Especies[i,j,0] += Especies_Nicho[i,j,k] * Data_Especies[j,0]
+            Especies_Nicho = temp_Especies
+            print("FIN DE REPRODUCCIÓN", file = f)
+            print(Especies_Nicho, file = f)
+            for i in range(0, N_Nichos):
+                self.progressBar.setValue((i/N_Nichos)*100)
+                for j in range(0, N_Especies):
+                    if Data_Especies[j,8] != -1:    
+                        for l in range(0, Especies_Nicho[i,j,0]):
+                            #if Muertes[i,j,0] > 0 and Data_Especies[int(Data_Especies[int(Data_Especies[j,8]),3]),4] < Data_Especies[int(Data_Especies[j,8]),0] and randint(0, 100) < Data_Especies[j,5]:
+                            if Muertes[i,j,1] == 0 and Muertes[i,j,1] == 0:
+                                Especies_Nicho[i,j,0] = Especies_Nicho[i,j,0] - 1
+                                Especies_Nicho[i,int(Data_Especies[j,8]),0] = Especies_Nicho[i,int(Data_Especies[j,8]),0] + 1
+                                Especies_Nicho[i,int(Data_Especies[int(Data_Especies[j,8]),3]),0] = Especies_Nicho[i,int(Data_Especies[int(Data_Especies[j,8]),3]),0] + 1
+                            elif randint(0, 100) * Muertes[i,j,1]/(Muertes[i,j,0] + Muertes[i,j,1]) <= Data_Especies[j,5]:
+                                Especies_Nicho[i,j,0] = Especies_Nicho[i,j,0] - 1
+                                Especies_Nicho[i,int(Data_Especies[j,8]),0] = Especies_Nicho[i,int(Data_Especies[j,8]),0] + 1
+                                Especies_Nicho[i,int(Data_Especies[int(Data_Especies[j,8]),3]),0] = Especies_Nicho[i,int(Data_Especies[int(Data_Especies[j,8]),3]),0] + 1
+            print("FIN DE FLEXIBILIDAD", file = f)
+            print(Especies_Nicho, file = f)                    
             
+            temp_Especies = numpy.zeros((N_Nichos,N_Especies,4), dtype=int)
+            for i in range(0, N_Nichos):
+                self.progressBar.setValue((i/N_Nichos)*100)
+                for j in range(0, N_Especies):
+                    for I in range(0,int(Especies_Nicho[i,j,0])):
+
+                        if N_Nichos > 4:
+                            l = randint(-2, 2)
+                            if i + l >= N_Nichos:    
+                                temp_Especies[i + l - N_Nichos,j,0] += 1
+                            elif i + l < 0:
+                                temp_Especies[i + l + N_Nichos,j,0] += 1
+                            else:
+                                temp_Especies[i + l,j,0] += 1
+                        else:
+                            l = randint(0, N_Nichos - 1)
+                            temp_Especies[l,j,0] += 1
+                        
+              
+
             Especies_Nicho = temp_Especies
             #print("FIN DE GEN")
             #print(str(Especies_Nicho))
-            print("FIN DE REP", file = f)
+            print("FIN DE REPARTO", file = f)
             print(Especies_Nicho, file = f)
             print("MUERTES", file = f)
             print(Muertes, file = f)
@@ -785,12 +785,6 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             else:
                 if self.Data_Table.currentRow() != 0:
                    print("NO")
-        elif self.Data_Table.currentColumn() == 7:
-            if self.Data_Table.item(self.Data_Table.currentRow(), self.Data_Table.currentColumn()).text() != "x" and self.Data_Table.item(self.Data_Table.currentRow(), self.Data_Table.currentColumn()).text():
-                QtWidgets.QMessageBox.about(self, "Title", "Debe introducir una x o nada")
-                ACF.delete_item(self.Data_Table,self.Data_Table.currentRow(), self.Data_Table.currentColumn())
-                #item = self.Data_Table.item(self.Data_Table.currentRow(), self.Data_Table.currentColumn())
-                #item.setText("X")
                 
         self.Data_Table.cellChanged.connect(self.data_modified)
             
@@ -823,10 +817,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                 i = 0
                 for row in spamreader:
                     if i == 0:
-                        self.Nodes.setValue(int(row[8]))
-                        self.Resources.setValue(int(row[9]))
-                        self.Reproduction.setValue(int(row[10]))
-                        self.Deaths.setValue(int(row[11]))
+                        self.Nodes.setValue(int(row[7]))
+                        self.Resources.setValue(int(row[8]))
+                        self.Reproduction.setValue(int(row[9]))
+                        self.Deaths.setValue(int(row[10]))
                     ACF.change_item(self.Data_Table,i,0,row[0])
                     ACF.change_item(self.Data_Table,i,1,row[1])
                     ACF.change_item(self.Data_Table,i,2,row[2])
@@ -834,7 +828,6 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                     ACF.change_item(self.Data_Table,i,4,row[4])
                     ACF.change_item(self.Data_Table,i,5,row[5])
                     ACF.change_item(self.Data_Table,i,6,row[6])
-                    ACF.change_item(self.Data_Table,i,7,row[7])
                     ACF.new_row(self.Data_Table, self.Data_Table.rowCount())
                     i += 1
                 
@@ -853,8 +846,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                                          [self.Data_Table.item(i, 3).text()]  +
                                          [self.Data_Table.item(i, 4).text()]  +
                                          [self.Data_Table.item(i, 5).text()]  +
-                                         [self.Data_Table.item(i, 6).text()]  +
-                                         [self.Data_Table.item(i, 7).text()])
+                                         [self.Data_Table.item(i, 6).text()])
                     if i == 0:
                         spamwriter.writerow([self.Data_Table.item(i, 0).text()]  + 
                                              [self.Data_Table.item(i, 1).text()]  +
@@ -863,7 +855,6 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                                              [self.Data_Table.item(i, 4).text()]  +
                                              [self.Data_Table.item(i, 5).text()]  +
                                              [self.Data_Table.item(i, 6).text()]  +
-                                             [self.Data_Table.item(i, 7).text()]  +
                                              [self.Nodes.value()] + [self.Resources.value()] + 
                                              [self.Reproduction.value()] + [self.Deaths.value()] )
                         
@@ -874,8 +865,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                                              [self.Data_Table.item(i, 3).text()]  +
                                              [self.Data_Table.item(i, 4).text()]  +
                                              [self.Data_Table.item(i, 5).text()]  +
-                                             [self.Data_Table.item(i, 6).text()]  +
-                                             [self.Data_Table.item(i, 7).text()])
+                                             [self.Data_Table.item(i, 6).text()])
         except IOError:
             QtWidgets.QMessageBox.about(self, "ERROR", "Oops! Something is wrong with the file. Try again...")
         
