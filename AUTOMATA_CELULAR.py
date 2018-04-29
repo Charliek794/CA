@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Main
-v0.2.0
+v0.3.1
 @author: Carlos Villagrasa Guerrero
 """
 from PyQt5.QtCore import QT_VERSION_STR
 from PyQt5.Qt import PYQT_VERSION_STR
+from PyQt5.QtCore import Qt
 from sip import SIP_VERSION_STR 
 print("Qt version:", QT_VERSION_STR)
 print("SIP version:", SIP_VERSION_STR)
@@ -14,6 +15,8 @@ print("PyQt version:", PYQT_VERSION_STR)
 import sys
 import math
 from PyQt5 import QtCore, QtGui, uic, QtWidgets
+
+
 #import pyqtgraph as pg
 import numpy
 import ACF
@@ -143,7 +146,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
         self.GEN.display(1)
         #Next step button
         self.NEXT_Button.clicked.connect(self.NEXT)
-        #self.MUT_Button.clicked.connect(self.MUT)
+        self.MUT_Button.clicked.connect(self.MUT)
         print("DATOS")
         try:
             with open(window.CSV_NAME.text() + '_datos.csv', 'w', newline='') as csvfile: 
@@ -183,9 +186,160 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
         
         f = open("out.txt",'w')
         f.close()
-    #def MUT(self):        
+        f = open("flex.txt",'w')
+        f.close()
+    
+    
+    def MUT(self):        
+        
+        window.Continue_Button.setEnabled(True)
+        window.Nodes.setEnabled(True)
+        window.Resources.setEnabled(True)
+        window.Reproduction.setEnabled(True)
+        window.Deaths.setEnabled(True)
+        window.Data_Table.setEnabled(True)
+        for i in range(0,N_Especies):
+            ACF.change_item(window.Data_Table,i,1,"0") 
         
         
+        self.hide()
+        window.show()
+        
+    def MUT_Changes(self):
+        
+        #super().__init__()
+        #Set UI
+        #self.setupUi(self)
+        global Data_Especies,Especies_Nicho, N_Nichos, N_Especies, Muertes
+        N_Especies_temp = window.Data_Table.rowCount() - 1
+        #Number of niches?
+        N_Nichos_temp = window.Nodes.value()
+        #Muertes = numpy.zeros((N_Nichos,N_Especies,2))
+        """
+        # create plot
+        plt = pg.plot()
+        plt.showGrid(x=True,y=True)
+        plt.addLegend()
+        """
+        #Adjust table to number of species
+        self.Display_Table.setRowCount(N_Especies_temp + 1)
+        #Set matrix for data of the species
+        Data_Especies = numpy.zeros((N_Especies_temp, 9))
+        
+        for i in range(0,N_Especies_temp):
+            Data_Especies[i,8] = -1
+            Data_Especies[i,6] = -1
+            
+        #Get data for the species
+        for i in range(0,N_Especies_temp):
+            #Set name on the table
+            
+            ACF.change_item(self.Display_Table,i,0,window.Data_Table.item(i,0).text())
+         
+            Data_Especies[i,1] = int(window.Data_Table.item(i,1).text())    #Catidad inicial
+            Data_Especies[i,0] = int(window.Data_Table.item(i,2).text())    #direct fitness
+            Data_Especies[i,4] = int(window.Data_Table.item(i,3).text())    #indirect fitness
+       
+            
+            if window.Data_Table.item(i,4).text(): #Asociación
+                Data_Especies[i,2] = ACF.find_item(window.Data_Table, window.Data_Table.item(i,4).text())
+            else:
+                Data_Especies[i,2] = -1
+
+            if window.Data_Table.item(i,5).text(): #Agrupación
+                #compañero
+                Data_Especies[i,3] = ACF.find_item(window.Data_Table, window.Data_Table.item(i,5).text())
+                #destino de agrupación
+                Data_Especies[i,7] = ACF.find_item(window.Data_Table, window.Data_Table.item(i,0).text() + "(" + window.Data_Table.item(i,5).text() + ")")
+                #origen de agrupación
+                Data_Especies[int(Data_Especies[i,7]),8] = i
+            else:
+                Data_Especies[i,3] = -1
+                Data_Especies[i,7] = -1
+        
+            Data_Especies[i,5] = int(window.Data_Table.item(i,6).text())
+             
+        
+        """
+        Matrix of species
+        0->Individuos
+        1->Recipientes asociación
+        2->Actores asociación
+        """
+        print(Data_Especies)
+        
+        Especies_Nicho_temp = numpy.zeros((N_Nichos_temp,N_Especies_temp,4), dtype=numpy.int)
+        Especies_Nicho_temp[0:N_Nichos,0:N_Especies,:] = Especies_Nicho[:,:,:]
+        Especies_Nicho = numpy.zeros((N_Nichos_temp,N_Especies_temp,4), dtype=numpy.int)
+        Especies_Nicho = Especies_Nicho_temp
+        N_Nichos = N_Nichos_temp
+        N_Especies = N_Especies_temp
+        #Generación inicial
+        
+        print(Especies_Nicho)
+        ACF.inicial_set(Data_Especies, N_Nichos, N_Especies, Especies_Nicho) 
+        
+        self.Display_Table.setColumnCount(N_Nichos + 4)
+        for i in range(0,N_Nichos):
+            self.Display_Table.setHorizontalHeaderItem(i + 4, QtWidgets.QTableWidgetItem("Nicho " + str(i + 1)))
+        
+        for i in range(0,N_Especies):
+            # Potencial biótico
+
+            for j in range(0, N_Nichos):
+                ACF.change_item(self.Display_Table,i,j+4,str(Especies_Nicho[j,i,0]))
+            ACF.change_item(self.Display_Table,i,3,str(Especies_Nicho[:,i,:].sum(axis = 1).sum()))
+        
+        ACF.change_item(self.Display_Table,N_Especies,0,"Total")
+        
+        ACF.refresh_total(self.Display_Table, N_Nichos, N_Especies, Especies_Nicho)
+        
+        print("asdfasdfasdf")
+        
+        #Current generation
+        #self.GEN.display(1)
+        #Next step button
+        #self.NEXT_Button.clicked.connect(self.NEXT)
+        #self.MUT_Button.clicked.connect(self.MUT)
+        print("DATOS")
+        try:
+            with open(window.CSV_NAME.text() + '_datos.csv', 'a', newline='') as csvfile: 
+                spamwriter = csv.writer(csvfile)
+                for i in range(0,len(Data_Especies[:,0])):
+                    spamwriter.writerow(Data_Especies[i,:])
+        except IOError:
+            QtWidgets.QMessageBox.about(self, "ERROR", "Oops! Something is wrong with the file. Try again...")
+       
+        print("RESULTADOS")    
+        try:
+            with open(window.CSV_NAME.text() + '_resultados.csv', 'a', newline='') as csvfile:
+                spamwriter = csv.writer(csvfile)
+                spamwriter.writerow(['GENERACIÓN INICIAL'])
+                spamwriter.writerow(['--------------------------------'])
+                for i in range(0,N_Especies):
+                    spamwriter.writerow([self.Display_Table.item(i, 0).text()] +
+                                        ['nan'] +
+                                        [self.Display_Table.item(i, 3).text()])
+        except IOError:
+            QtWidgets.QMessageBox.about(self, "ERROR", "Oops! Something is wrong with the file. Try again...")
+                
+        print("NICHOS")    
+        try:
+            with open(window.CSV_NAME.text() + '_nichos.csv', 'a', newline='') as csvfile:
+                spamwriter = csv.writer(csvfile)
+                spamwriter.writerow(['GENERACIÓN INICIAL'])
+                spamwriter.writerow(['--------------------------------'])
+                for i in range(0,len(Especies_Nicho[:,0,0])): 
+                    spamwriter.writerow(['NICHO ' + str(i)])
+                    spamwriter.writerow(['--------------------------------'])
+                    for j in range(0,len(Especies_Nicho[0,:,0])):
+                        spamwriter.writerow(['ESPECIE ' + str(j)])
+                        spamwriter.writerow(Especies_Nicho[i,j,:])
+        except IOError:
+            QtWidgets.QMessageBox.about(self, "ERROR", "Oops! Something is wrong with the file. Try again...")
+        
+        #f = open("out.txt",'a')
+        #f.close()
         
     def NEXT(self):
         
@@ -193,7 +347,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
         global Data_Especies,Especies_Nicho, N_Nichos, Muertes
         for t in range(0,self.GEN_STEP.value()):
             f = open("out.txt",'a')
-            
+            g = open("flex.txt",'a')
             """
             Asociación agrupación
             Actualmente en orden de índice ( TBU - orden aleatorio )
@@ -202,6 +356,9 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             print(t, file = f)
             print("GENERACIÓN " + str(self.GEN.intValue()), file = f)
             print("--------------------------------------------------------------------------------------------", file = f)
+            print(t, file = g)
+            print("GENERACIÓN " + str(self.GEN.intValue()), file = g)
+            print("--------------------------------------------------------------------------------------------", file = g)
             """
             Muertes
             0 -> SG
@@ -220,6 +377,8 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                 temp_sin_asociar = Especies_Nicho[i,:,0].copy()
                 k = 0
                 print("AGR", file = f)
+                print("Aggrupation", file = g)
+                print("-------------------------------------------------", file = g)
                 if len(order1) > 0:
                     while k < len(order1):
                         j = int(order1[k] / 10)
@@ -230,10 +389,10 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                                 print("")
                             else:
                                 
-                                print('NICHO {0} and ESPECIE{1}'.format(i, j), file = f)
-                                R = randint(0, 100)
-                                print(R * Muertes[i,j,1]/(Muertes[i,j,0] + Muertes[i,j,1]), file = f)
-                                if R * Muertes[i,j,1]/(Muertes[i,j,0] + Muertes[i,j,1]) <= Data_Especies[j,5]: #Agrupación 
+                                print('NICHO {0} and ESPECIE{1}'.format(i, j), file = g)
+                                R = randint(-10, 10)
+                                print(R + (Muertes[i,j,1]/(Muertes[i,j,0] + Muertes[i,j,1]))*100, file = g)
+                                if R + (Muertes[i,j,1]/(Muertes[i,j,0] + Muertes[i,j,1]))*100 <= Data_Especies[j,5]: #Agrupación 
                                     if int(Data_Especies[j,3]) != j:
                                         if temp_sin_asociar[int(Data_Especies[j,3])] > 0:
                                             Especies_Nicho[i,int(Data_Especies[j,7]),0] = Especies_Nicho[i,int(Data_Especies[j,7]),0] + 1
@@ -579,17 +738,25 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             Especies_Nicho = temp_Especies
             print("FIN DE REPRODUCCIÓN", file = f)
             print(Especies_Nicho, file = f)
+            print("Deaggrupation", file = g)
+            print("----------------------------------------------------", file = g)
             for i in range(0, N_Nichos):
                 self.progressBar.setValue((i/N_Nichos)*100)
                 for j in range(0, N_Especies):
-                    if Data_Especies[j,8] != -1:    
+                    
+                    if Data_Especies[j,8] != -1: 
+                        
+                        print('NICHO {0} and ESPECIE{1}'.format(i, j), file = g)
+                        print((Muertes[i,j,1]/(Muertes[i,j,0] + Muertes[i,j,1]))*100, file = g)
                         for l in range(0, Especies_Nicho[i,j,0]):
+                            R = randint(-10, 10)
+                            print(R, file = g)
                             #if Muertes[i,j,0] > 0 and Data_Especies[int(Data_Especies[int(Data_Especies[j,8]),3]),4] < Data_Especies[int(Data_Especies[j,8]),0] and randint(0, 100) < Data_Especies[j,5]:
                             if Muertes[i,j,1] == 0 and Muertes[i,j,1] == 0:
                                 Especies_Nicho[i,j,0] = Especies_Nicho[i,j,0] - 1
                                 Especies_Nicho[i,int(Data_Especies[j,8]),0] = Especies_Nicho[i,int(Data_Especies[j,8]),0] + 1
                                 Especies_Nicho[i,int(Data_Especies[int(Data_Especies[j,8]),3]),0] = Especies_Nicho[i,int(Data_Especies[int(Data_Especies[j,8]),3]),0] + 1
-                            elif randint(0, 100) * Muertes[i,j,1]/(Muertes[i,j,0] + Muertes[i,j,1]) <= Data_Especies[j,5]:
+                            elif R + (Muertes[i,j,1]/(Muertes[i,j,0] + Muertes[i,j,1]))*100 > Data_Especies[j,5]:
                                 Especies_Nicho[i,j,0] = Especies_Nicho[i,j,0] - 1
                                 Especies_Nicho[i,int(Data_Especies[j,8]),0] = Especies_Nicho[i,int(Data_Especies[j,8]),0] + 1
                                 Especies_Nicho[i,int(Data_Especies[int(Data_Especies[j,8]),3]),0] = Especies_Nicho[i,int(Data_Especies[int(Data_Especies[j,8]),3]),0] + 1
@@ -699,9 +866,11 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.Data_Table.cellChanged.connect(self.data_modified)
         
         self.Start_Button.clicked.connect(self.Start)
+        self.Continue_Button.clicked.connect(self.Continue)
         self.Load_Button.clicked.connect(self.Load)
         self.Save_Button.clicked.connect(self.Save)
         self.EXIT_Button.clicked.connect(self.EXIT)
+        self.Reset_Button.clicked.connect(self.Reset)
        
     def data_modified(self):
         self.Data_Table.cellChanged.disconnect(self.data_modified)
@@ -804,8 +973,63 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         W_Sim.show()
         app.exec_()
         """
+        self.CSV_NAME.setEnabled(False)
+        self.Start_Button.setEnabled(False)
+        self.Save_Button.setEnabled(False)
+        self.Load_Button.setEnabled(False)
+        self.Nodes.setEnabled(False)
+        self.Resources.setEnabled(False)
+        self.Reproduction.setEnabled(False)
+        self.Deaths.setEnabled(False)
+        self.Data_Table.setEnabled(False)
         self.dialog = Sim() 
         self.dialog.show()
+        
+    def Continue(self):
+        
+        """
+        for i in range (0,5):
+            Data_Names[0] = self.Name_00.toPlainText()
+            Data_Especies    
+
+        
+        Data_Especies[0,0] = self.Name_00.toPlainText()
+        self.Name_01.setPlainText(self.Name_00.toPlainText())
+
+        W_Sim = Sim()
+        W_Sim.show()
+        app.exec_()
+        """
+        self.Continue_Button.setEnabled(False)
+
+        self.Nodes.setEnabled(False)
+        self.Resources.setEnabled(False)
+        self.Reproduction.setEnabled(False)
+        self.Deaths.setEnabled(False)
+        self.Data_Table.setEnabled(False)
+        
+        self.dialog.MUT_Changes()
+        self.dialog.show()
+      
+    def Reset(self):
+
+        self.Continue_Button.setEnabled(False)
+
+        self.Nodes.setEnabled(True)
+        self.Resources.setEnabled(True)
+        self.Reproduction.setEnabled(True)
+        self.Deaths.setEnabled(True)
+        self.Data_Table.setEnabled(True)
+        
+        self.CSV_NAME.setEnabled(True)
+        self.Start_Button.setEnabled(True)
+        self.Save_Button.setEnabled(True)
+        self.Load_Button.setEnabled(True)
+        
+        self.Data_Table.setRowCount(0)
+        ACF.new_row(self.Data_Table, self.Data_Table.rowCount())
+        
+        self.dialog.hide()
         
     def Load(self):
         print("LOAD")
