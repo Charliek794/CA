@@ -1,27 +1,53 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Main
-v0.3.1
+v0.4.1
 @author: Carlos Villagrasa Guerrero
 """
+
+#import matplotlib.pyplot as plt #for plot
 from PyQt5.QtCore import QT_VERSION_STR
 from PyQt5.Qt import PYQT_VERSION_STR
-from PyQt5.QtCore import Qt
 from sip import SIP_VERSION_STR 
+
 print("Qt version:", QT_VERSION_STR)
 print("SIP version:", SIP_VERSION_STR)
 print("PyQt version:", PYQT_VERSION_STR)
 
+
 import sys
 import math
-from PyQt5 import QtCore, QtGui, uic, QtWidgets
+
+"""
+# libraries
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+
+# create data
+x = np.random.rand(15)
+y = x+np.random.rand(15)
+z = x+np.random.rand(15)
+z=z*z
+
+# Change color with c and alpha. I map the color to the X axis value.
+plt.scatter(x, y, s=z*2000, c=x, cmap="Blues", alpha=0.4, edgecolors="grey", linewidth=2)
+
+# Add titles (main and on axis)
+plt.xlabel("the X axis")
+plt.ylabel("the Y axis")
+plt.title("A colored bubble plot")
+
+plt.show()
+"""
+from PyQt5 import uic, QtWidgets
 
 
 #import pyqtgraph as pg
 import numpy
 import ACF
 import csv
-from random import randint, sample, shuffle
+from random import randint, shuffle
 
 numpy.set_printoptions(threshold=numpy.inf)
 
@@ -365,8 +391,8 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             1 -> SI
             """
             
-            Eficacia = numpy.zeros((N_Nichos,N_Especies,4))
-            E_Total = 0
+            #Eficacia = numpy.zeros((N_Nichos,N_Especies,4))
+            #E_Total = 0
             
             self.Actual.setText("ASOCIACIÓN/AGRUPACIÓN")
             print(Especies_Nicho, file = f)
@@ -385,8 +411,23 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                         #print(j)
                         #if randint(0, 100) * Muertes[i,j,1]/(Muertes[i,j,0] + Muertes[i,j,1]) <= Data_Especies[j,5]:
                         if Data_Especies[j,3] != -1 and temp_sin_asociar[j] > 0:
+                            R = randint(0, 100)
                             if Muertes[i,j,1] == 0 and Muertes[i,j,0] == 0:
-                                print("")
+                                if R <= Data_Especies[j,5]:
+                                    if int(Data_Especies[j,3]) != j:
+                                        if temp_sin_asociar[int(Data_Especies[j,3])] > 0:
+                                            Especies_Nicho[i,int(Data_Especies[j,7]),0] = Especies_Nicho[i,int(Data_Especies[j,7]),0] + 1
+                                            
+                                            Especies_Nicho[i,int(Data_Especies[j,3]),0] = Especies_Nicho[i,int(Data_Especies[j,3]),0] - 1
+                                            temp_sin_asociar[int(Data_Especies[j,3])] = temp_sin_asociar[int(Data_Especies[j,3])] - 1
+                                            
+                                            Especies_Nicho[i,j,0] = Especies_Nicho[i,j,0] - 1
+                                            temp_sin_asociar[j] = temp_sin_asociar[j] - 1
+                                    else:
+                                        if temp_sin_asociar[j] > 1:
+                                            Especies_Nicho[i,int(Data_Especies[j,7]),0] = Especies_Nicho[i,int(Data_Especies[j,7]),0] + 1
+                                            Especies_Nicho[i,j,0] = Especies_Nicho[i,j,0] - 2
+                                            temp_sin_asociar[j] = temp_sin_asociar[j] - 2  
                             else:
                                 
                                 print('NICHO {0} and ESPECIE{1}'.format(i, j), file = g)
@@ -437,8 +478,8 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                                     Especies_Nicho[i,int(Data_Especies[j,2]),0] -= 1
                                     temp_sin_asociar[int(Data_Especies[j,2])] -= 1
                                     Especies_Nicho[i,j,0] -= 1 
-                                else:
-                                    if temp_sin_asociar[j] != 1:
+                                else:              
+                                    if temp_sin_asociar[j] != 1 or int(Data_Especies[j,2]) != j:
                                         Especies_Nicho[i,j,3] += 1
                                         temp_sin_asociar[j] -= 1
                                         Especies_Nicho[i,int(Data_Especies[j,2]),3] += 1 
@@ -584,7 +625,11 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
             print("reordenado: 1->DF/IF; 2->DF", file = f)
             print(order_if, file = f)    
             print(order, file = f) 
-            
+            print("-------------------------------")
+            print(Especies_Nicho)
+            print("reordenado: 1->DF/IF; 2->DF")
+            print(order_if)    
+            print(order) 
             
             for i in range(0,N_Nichos):
                 #print(i)
@@ -592,6 +637,7 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                 o = len(order) - 1
                 k = window.Deaths.value()/100 * Especies_Nicho[i,:,:].sum(axis = 0).sum()
                 k = math.ceil(k)
+                print(k)
                 
                 while o >= 0 and k > 0: #individuos y recipientes
                     if Data_Especies[order[o],8] != -2:
@@ -608,13 +654,18 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                                 Muertes[i,order[o],0] += Especies_Nicho[i,order[o],no_zero[0][Random]]
                                 Especies_Nicho[i,order[o],no_zero[0][Random]] = 0
                             no_zero = numpy.nonzero(Especies_Nicho[i,order[o],:2])
+                            
                     if k > 0:
                         o = o - 1
                 o = len(order_if) - 1
                 #print(k)
+                print(Especies_Nicho)
                 while o >= 0 and k > 0: # actores y reciprocos
-                    if Data_Especies[order[o],8] != -2:
+                    print(k)
+                    if Data_Especies[order_if[o],8] != -2:
                         no_zero = numpy.nonzero(Especies_Nicho[i,order_if[o],2:])
+                        print(Especies_Nicho[i,order_if[o],2:])
+                        print(no_zero[:])
                         while len(no_zero[0]) != 0 and k > 0:
                             Random = randint(0, len(no_zero[0])-1)
                             if Especies_Nicho[i,order_if[o],no_zero[0][Random] + 2] >= k:
@@ -624,8 +675,9 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                             else:
                                 k = k - Especies_Nicho[i,order_if[o],no_zero[0][Random] + 2]
                                 Muertes[i,order_if[o],0] += Especies_Nicho[i,order_if[o],no_zero[0][Random] + 2]
-                                Especies_Nicho[i,order[o],no_zero[0][Random] + 2] = 0
+                                Especies_Nicho[i,order_if[o],no_zero[0][Random] + 2] = 0
                             no_zero = numpy.nonzero(Especies_Nicho[i,order_if[o],2:])
+                            print(Especies_Nicho)
                     if k > 0:
                         o = o - 1
                 """       
@@ -748,15 +800,17 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                         
                         print('NICHO {0} and ESPECIE{1}'.format(i, j), file = g)
                         print((Muertes[i,j,1]/(Muertes[i,j,0] + Muertes[i,j,1]))*100, file = g)
+                        print("random flex", file = g)
                         for l in range(0, Especies_Nicho[i,j,0]):
-                            R = randint(-10, 10)
-                            print(R, file = g)
+                            R = randint(0, 100)
+                            print((R*0.2 - 10) + (Muertes[i,j,1]/(Muertes[i,j,0] + Muertes[i,j,1]))*100, file = g)
                             #if Muertes[i,j,0] > 0 and Data_Especies[int(Data_Especies[int(Data_Especies[j,8]),3]),4] < Data_Especies[int(Data_Especies[j,8]),0] and randint(0, 100) < Data_Especies[j,5]:
                             if Muertes[i,j,1] == 0 and Muertes[i,j,1] == 0:
-                                Especies_Nicho[i,j,0] = Especies_Nicho[i,j,0] - 1
-                                Especies_Nicho[i,int(Data_Especies[j,8]),0] = Especies_Nicho[i,int(Data_Especies[j,8]),0] + 1
-                                Especies_Nicho[i,int(Data_Especies[int(Data_Especies[j,8]),3]),0] = Especies_Nicho[i,int(Data_Especies[int(Data_Especies[j,8]),3]),0] + 1
-                            elif R + (Muertes[i,j,1]/(Muertes[i,j,0] + Muertes[i,j,1]))*100 > Data_Especies[j,5]:
+                                if R > Data_Especies[j,5]:
+                                    Especies_Nicho[i,j,0] = Especies_Nicho[i,j,0] - 1
+                                    Especies_Nicho[i,int(Data_Especies[j,8]),0] = Especies_Nicho[i,int(Data_Especies[j,8]),0] + 1
+                                    Especies_Nicho[i,int(Data_Especies[int(Data_Especies[j,8]),3]),0] = Especies_Nicho[i,int(Data_Especies[int(Data_Especies[j,8]),3]),0] + 1
+                            elif (R*0.2 - 10) + (Muertes[i,j,1]/(Muertes[i,j,0] + Muertes[i,j,1]))*100 > Data_Especies[j,5]:
                                 Especies_Nicho[i,j,0] = Especies_Nicho[i,j,0] - 1
                                 Especies_Nicho[i,int(Data_Especies[j,8]),0] = Especies_Nicho[i,int(Data_Especies[j,8]),0] + 1
                                 Especies_Nicho[i,int(Data_Especies[int(Data_Especies[j,8]),3]),0] = Especies_Nicho[i,int(Data_Especies[int(Data_Especies[j,8]),3]),0] + 1
@@ -817,10 +871,47 @@ class Sim(QtWidgets.QMainWindow,Ui_SimWindow):
                 #ACF.change_item(self.Display_Table,i,2,str(Temp_Acc)) #Accumulado
                 
             ACF.refresh_total(self.Display_Table, N_Nichos, N_Especies, Especies_Nicho)
+            """
+            if self.Graph_Check.isChecked():
+                self.Actual.setText("GRÁFICO")
+                app.processEvents()
+                
+                # create data
+                x = numpy.arange(N_Nichos*N_Especies)
+                y = numpy.arange(N_Nichos*N_Especies)
+                z = numpy.arange(N_Nichos*N_Especies)
+                c = numpy.arange(N_Nichos*N_Especies)
+               
+                #print(Especies_Nicho)
+                
+                for i in range(0,N_Nichos):
+                    for j in range(0,N_Especies):
+                        #print(i+1)
+                        #print(j+1)
+                        #print(Especies_Nicho[i,j,:].sum())
+                        
+                        x[i*N_Especies+j] = i+1
+                        y[i*N_Especies+j] = j+1
+                        z[i*N_Especies+j] = Especies_Nicho[i,j,:].sum()
+                       
+                        self.progressBar.setValue((i/N_Nichos)*100)
+                        #print(x)
+                        #print(y)
+                        #print(z)       
+                
+                plt.figure(self.GEN.intValue())
+                # Change color with c and alpha. I map the color to the X axis value.
+                plt.scatter(x, y, s=z, c=c, cmap="rainbow", alpha=0.4, edgecolors="grey", linewidth=2)
+                
+                # Add titles (main and on axis)
+                plt.xlabel("Nichos")
+                plt.ylabel("Especies")
+                plt.title('A colored bubble plot {0}'.format(self.GEN.intValue()))
+                
+                plt.show()
+            """    
             self.Actual.setText("")
             self.progressBar.setValue(0)
-            
-            app.processEvents()
             
             print("RESULTADOS", file = f)    
             try:

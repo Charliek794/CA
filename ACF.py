@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Functions
-v0.3.1
+v0.4.1
 @author: Carlos Villagrasa Guerrero
 """
 

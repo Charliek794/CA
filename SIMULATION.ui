@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>SIMULATION</string>
+   <string>SIMULATION v0.4.0</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -127,6 +127,13 @@
      <widget class="QLabel" name="Actual">
       <property name="text">
        <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QCheckBox" name="Graph_Check">
+      <property name="text">
+       <string>REPRESENTACIÓN GRÁFICA</string>
       </property>
      </widget>
     </item>
