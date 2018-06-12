@@ -1,12 +1,24 @@
 ### CA Evolutive Automaton
 
-To install it, an active python 3 interpreter must be active and if, not already installed, you have to install **matplotlib** and **pyqt5**:
+To install it, an active
+
+* `python 3`
+
+ interpreter must be active and if, not already installed, you have to install **matplotlib** and **pyqt5**:
 
 * `pip3 install matplotlib`
 
 * `pip3 install pyqt5`
 
-To start the program, go to the directory the program is and execute `AUTOMATA_CELULAR.py`
+* After this, you can download the project either through the GitHub interface ("Clone or download -> Download zip") or `wget https://github.com/Charliek794/CA/archive/master.zip`
 
-    python3 AUTOMATA_CELULAR.py
+* decompress the `master.zip` file that will exand to `CA-master/` directory
+
+* To start the program, go to the directory
+
+    `cd CA-master`
+
+* and execute
+
+    `python3 AUTOMATA_CELULAR.py`
 
