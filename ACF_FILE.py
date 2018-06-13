@@ -8,6 +8,15 @@ import csv
 from PyQt5 import QtWidgets
 
 def data_write(window, sim, Data_Especies, Especies_Nicho, N_Especies, mode):
+    """
+    data_write(window, sim, Data_Especies, Especies_Nicho, N_Especies, mode)
+    Description:
+        -This function writes data on a file
+    Input:
+        -Data_Table: QT table handler
+    Output:
+        -x, y: Position of the item to be changed
+    """  
     print("DATOS")
     try:
         with open(window.CSV_NAME.text() + '_datos.csv', mode, newline='') as csvfile: 

@@ -5,6 +5,29 @@ v0.4.1
 @author: Carlos Villagrasa Guerrero
 """
 
+"""
+# libraries
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+
+# create data
+x = np.random.rand(15)
+y = x+np.random.rand(15)
+z = x+np.random.rand(15)
+z=z*z
+
+# Change color with c and alpha. I map the color to the X axis value.
+plt.scatter(x, y, s=z*2000, c=x, cmap="Blues", alpha=0.4, edgecolors="grey", linewidth=2)
+
+# Add titles (main and on axis)
+plt.xlabel("the X axis")
+plt.ylabel("the Y axis")
+plt.title("A colored bubble plot")
+
+plt.show()
+"""
+
 import numpy
 import ACF_QT
 from random import randint, shuffle
@@ -57,6 +80,9 @@ def read_data_from_qt(window, sim):
     print("HEY")
     N_Especies = window.Data_Table.rowCount() - 1
     N_Nichos = window.Nodes.value()
+    Deaths = window.Deaths.value()
+    Reproduction = window.Reproduction.value()
+    Resources = window.Resources.value()
     
     #Adjust table to number of species
     sim.Display_Table.setRowCount(N_Especies + 1)
@@ -101,7 +127,7 @@ def read_data_from_qt(window, sim):
     for i in range(0,N_Nichos):
         sim.Display_Table.setHorizontalHeaderItem(i + 4, QtWidgets.QTableWidgetItem("Nicho " + str(i + 1)))
   
-    return [Data_Especies, N_Nichos, N_Especies]
+    return [Data_Especies, N_Nichos, N_Especies, Deaths, Reproduction, Resources]
 
 def resize_matrix_3d(matrix, original_x, original_y, new_x, new_y):
     matrix_temp = numpy.zeros((new_x, new_y, int(len(matrix[0, 0, :]))), dtype=numpy.int)
