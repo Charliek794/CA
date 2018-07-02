@@ -10,9 +10,9 @@ To install it, an active
 
 * `pip3 install pyqt5`
 
-* After this, you can download the project either through the GitHub interface ("Clone or download -> Download zip") or `wget https://github.com/Charliek794/CA/archive/Documentind-functions.zip`
+* After this, you can download the project either through the GitHub interface ("Clone or download -> Download zip") or `wget https://github.com/Charliek794/CA/archive/Documentind-functions.zip` or `curl -O https://github.com/Charliek794/CA/archive/Documentind-functions.zip`
 
-* decompress the `master.zip` file that will exand to `CA-Documentind-functions/` directory
+* decompress the `Documentind-functions.zip` file that will exand to `CA-Documentind-functions/` directory
 
 * To start the program, go to the directory
 
