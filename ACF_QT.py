@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Qt Functions
-v0.4.1
+v0.5.0
 @author: Carlos Villagrasa Guerrero
 """
 import os
@@ -44,23 +44,9 @@ def new_row(Data_Table, row):
     """
     Data_Table.insertRow(row)
 
-    change_item(Data_Table,row,0,"0")
-    change_item(Data_Table,row,1,"0")
-    change_item(Data_Table,row,2,"0")
-    change_item(Data_Table,row,3,"0")
-    change_item(Data_Table,row,4,"0")
-    change_item(Data_Table,row,5,"0")
-    change_item(Data_Table,row,6,"0")
-    change_item(Data_Table,row,7,"0")
-    
-    change_item(Data_Table,row,0,"")
-    change_item(Data_Table,row,1,"")
-    change_item(Data_Table,row,2,"")
-    change_item(Data_Table,row,3,"")
-    change_item(Data_Table,row,4,"")
-    change_item(Data_Table,row,5,"")
-    change_item(Data_Table,row,6,"")
-    change_item(Data_Table,row,7,"") 
+    for i in range(0, 8):
+        change_item(Data_Table,row,i,"0")
+        change_item(Data_Table,row,i,"")
     
 def find_item(Data_Table, nombre):
     """
@@ -283,7 +269,7 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
         f = open("flex.txt",'w')
         f.close()
         
-    def MUT(self):        
+    def MUT(self):
         """
         Mutation button behaviour
         """
@@ -401,12 +387,14 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
                 
             print("FIN DE SI", file = f)
             print(Especies_Nicho, file = f)
+            
             """
             Cálculo de E
             """
             
             Egoismo = numpy.zeros((N_Nichos,N_Especies,4))
-            Egoismo_relativo = numpy.zeros((N_Nichos,N_Especies,4))
+            Egoismo_Relativo = numpy.zeros((N_Nichos,N_Especies,4))
+            Egoismo_Especies = Especies_Nicho
             E_Total = 0
 
             for i in range(0,N_Nichos):
@@ -414,40 +402,27 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
                 for j in range(0,N_Especies):
                     Egoismo[i,j,0] = 1
                     Egoismo[i,j,1] = 1
-                    Egoismo[i,j,2] = Data_Especies[i,0]/(Data_Especies[i,0]+Data_Especies[i,4])
-                    Egoismo[i,j,3] = Data_Especies[i,0]/(Data_Especies[i,0]+Data_Especies[i,4])
-                    E_Total = (Egoismo[i,j,0] * Especies_Nicho[i,j,0] +
+                    Egoismo[i,j,2] = Data_Especies[j,0] / (Data_Especies[j,0] + Data_Especies[j,4])
+                    Egoismo[i,j,3] = Data_Especies[j,0] / (Data_Especies[j,0] + Data_Especies[j,4])
+                    E_Total += (Egoismo[i,j,0] * Especies_Nicho[i,j,0] +
                                 Egoismo[i,j,1] * Especies_Nicho[i,j,1] +
                                 Egoismo[i,j,2] * Especies_Nicho[i,j,2] +
                                 Egoismo[i,j,3] * Especies_Nicho[i,j,3]) 
-                    Egoismo_relativo[i,j,0] = Egoismo[i,j,0]/E_Total
-                    Egoismo_relativo[i,j,1] = Egoismo[i,j,1]/E_Total
-                    Egoismo_relativo[i,j,2] = Egoismo[i,j,2]/E_Total
-                    Egoismo_relativo[i,j,3] = Egoismo[i,j,3]/E_Total
-                print(Egoismo, file = f)
-                print(Egoismo_relativo, file = f)
-                print(Egoismo)
-                print(Egoismo_relativo)
-
-            
-            #T = numpy.zeros((N_Especies))
-            """
-            for i in range(0,N_Especies): 
-
-                for j in range(0, N_Nichos):
-                    
-                    T[i] += (Egoismo[j,i,0] * Especies_Nicho[j,i,0] +
-                         Egoismo[j,i,1] * Especies_Nicho[j,i,1] +
-                         Egoismo[j,i,2] * Especies_Nicho[j,i,2] +
-                         Egoismo[j,i,3] * Especies_Nicho[j,i,3])
-
-                T[i] = T[i]/Especies_Nicho[:,i,:].sum(axis = 1).sum() 
-            print("Egoismo", file = f)
+                for j in range(0,N_Especies):    
+                    Egoismo_Relativo[i,j,0] = Egoismo[i,j,0] / E_Total
+                    Egoismo_Relativo[i,j,1] = Egoismo[i,j,1] / E_Total
+                    Egoismo_Relativo[i,j,2] = Egoismo[i,j,2] / E_Total
+                    Egoismo_Relativo[i,j,3] = Egoismo[i,j,3] / E_Total
+            print("GREED", file = f)
+            print(Egoismo_Especies, file = f)
+            print(Egoismo_Especies)
             print(Egoismo, file = f)
-            """
+            print(Egoismo_Relativo, file = f)
+
             """
             Reproducción
             """
+
             self.Actual.setText("REPRODUCCIÓN")
             temp_Especies = numpy.zeros((N_Nichos,N_Especies,4), dtype=int)
             for i in range(0, N_Nichos):
@@ -546,42 +521,64 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
             
             #Graphic representation does'nt work on pyinstaller
             if self.Graph_Check.isChecked():
+                plt.ion()
+                plt.show()
                 self.Actual.setText("GRÁFICO")
+                gen = self.GEN.intValue()
                 #app.processEvents()
                 
                 # create data
-                x = numpy.arange(N_Nichos*N_Especies)
-                y = numpy.arange(N_Nichos*N_Especies)
-                z = numpy.arange(N_Nichos*N_Especies)
-                c = numpy.arange(N_Nichos*N_Especies)
+                x = numpy.zeros(N_Nichos*N_Especies*4)
+                y = numpy.zeros(N_Nichos*N_Especies*4)
+                z = numpy.zeros(N_Nichos*N_Especies*4)
+                c = numpy.zeros(N_Nichos*N_Especies*4)
                
                 #print(Especies_Nicho)
                 
                 for i in range(0,N_Nichos):
                     for j in range(0,N_Especies):
-                        #print(i+1)
-                        #print(j+1)
-                        #print(Especies_Nicho[i,j,:].sum())
-                        
-                        x[i*N_Especies+j] = i+1
-                        y[i*N_Especies+j] = j+1
-                        z[i*N_Especies+j] = Especies_Nicho[i,j,:].sum()
-                       
-                        self.progressBar.setValue((i/N_Nichos)*100)
-                        #print(x)
-                        #print(y)
-                        #print(z)       
+                        for k in range(0,4):
+                            #print(i+1)
+                            #print(j+1)
+                            #print(Especies_Nicho[i,j,:].sum())
+                            
+
+                            """
+                            Muertes
+                            0->Group selection deaths
+                            1->Individual selection deaths
+                            """
+                            if ((Muertes[i,j,0]+Muertes[i,j,1]) == 0):
+                                x[i*N_Especies*4 + j*4 + k] = 50
+                            else:
+                                x[i*N_Especies*4 + j*4 + k] = (Muertes[i,j,1]/(Muertes[i,j,0]+Muertes[i,j,1])) * 100
+                            y[i*N_Especies*4 + j*4 + k] = Egoismo_Relativo[i,j,k] * 100 * Egoismo_Especies[i,j,k] 
+                            z[i*N_Especies*4 + j*4 + k] = Egoismo_Especies[i,j,k]
+                            c[i*N_Especies*4 + j*4 + k] = j
+                           
+                            self.progressBar.setValue((i/N_Nichos)*100)
+                            #print(x)
+                            #print(y)
+                            #print(z)
+                            #print(c)       
                 
-                plt.figure(self.GEN.intValue())
+                plt.clf()
+                plt.figure("Graphic")
                 # Change color with c and alpha. I map the color to the X axis value.
-                plt.scatter(x, y, s=z, c=c, cmap="rainbow", alpha=0.4, edgecolors="grey", linewidth=2)
+                plt.scatter(x, y, s=z, c=c, cmap=plt.cm.jet, alpha=0.4, edgecolors="grey", linewidth=2)
                 
                 # Add titles (main and on axis)
-                plt.xlabel("Nichos")
-                plt.ylabel("Especies")
-                plt.title('A colored bubble plot {0}'.format(self.GEN.intValue()))
-                
-                plt.show()
+                plt.xlabel("Individual pressure [%]")
+                plt.ylabel("Greed [%]")
+                plt.xlim([-10,110])
+                plt.ylim([-10,110])
+                plt.colorbar(cmap=plt.cm.jet)
+                plt.title('Relative graphic representation {0}'.format(gen))
+                plt.draw()
+                plt.pause(0.005)
+                #plt.ion()
+                #plt.show(block = False)
+                #plt.show()
 
             self.Actual.setText("")
             self.progressBar.setValue(0)
