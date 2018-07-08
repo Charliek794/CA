@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular File Functions
-v0.5.0
+v0.5.1
 @author: Carlos Villagrasa Guerrero
 """
 import csv
@@ -14,9 +14,11 @@ def data_write(Name, Data_Especies, Especies_Nicho, N_Especies, mode):
     Description:
         -This function writes data on some files
     Input:
-        -Data_Table: QT table handler
-    Output:
-        -x, y: Position of the item to be changed
+        -Name:
+        -Data_Especies:
+        -Especies_Nicho:
+        -N_Especies:
+        -mode:
     """  
     print("DATOS")
     fpath = os.path.join("results", Name)
@@ -64,6 +66,32 @@ def data_write(Name, Data_Especies, Especies_Nicho, N_Especies, mode):
         #QtWidgets.QMessageBox.about(sim, "ERROR", "Oops! Something is wrong with the file. Try again...")
 
     """
+
+def graphic_write(Name, Data_Especies, Especies_Nicho, N_Especies, mode):
+    """
+    graphic_write(Name, Data_Especies, Especies_Nicho, N_Especies, mode)
+    Description:
+        -This function writes data for graphic representation on Gapminder
+    Input:
+        -Data_Table: QT table handler
+    Output:
+        -x, y: Position of the item to be changed
+    """  
+    print("DATOS")
+    fpath = os.path.join("results", Name)
+
+    if not os.path.isdir(fpath):
+        os.mkdir(fpath)
+    try:
+        with open(os.path.join(fpath, "graphic.csv") , mode, newline='') as csvfile: 
+            
+            spamwriter = csv.writer(csvfile)
+            for i in range(0,len(Data_Especies[:,0])):
+                spamwriter.writerow(Data_Especies[i,:])
+    except IOError:
+        print("ERROR: Oops! Something is wrong with the file. Try again...")
+        #QtWidgets.QMessageBox.about(sim, "ERROR", "Oops! Something is wrong with the file. Try again...")
+
 
 def Load(File):
     """

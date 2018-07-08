@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Functions
-v0.5.0
+v0.5.1
 @author: Carlos Villagrasa Guerrero
 """
 
@@ -336,3 +336,35 @@ def node_consumption(Especies_Nicho, i, Resources, Data_Especies, N_Especies, Mu
         
         Especies_Nicho[i,:,:] = Feeded
     return Especies_Nicho
+
+def greed_calc(Especies_Nicho, N_Nichos, N_Especies, Data_Especies):
+    Egoismo = numpy.zeros((N_Nichos,N_Especies,4))
+    Egoismo_Relativo = numpy.zeros((N_Nichos,N_Especies,4))
+    Egoismo_Especies = Especies_Nicho
+    E_Total = 0
+
+    for i in range(0,N_Nichos):
+        E_Total = 0
+        for j in range(0,N_Especies):
+            Egoismo[i,j,0] = 1
+            Egoismo[i,j,1] = 1
+            Egoismo[i,j,2] = Data_Especies[j,0] / (Data_Especies[j,0] + Data_Especies[j,4])
+            Egoismo[i,j,3] = Data_Especies[j,0] / (Data_Especies[j,0] + Data_Especies[j,4])
+            
+            E_Total += (Egoismo[i,j,0] * Especies_Nicho[i,j,0] +
+                        Egoismo[i,j,1] * Especies_Nicho[i,j,1] +
+                        Egoismo[i,j,2] * Especies_Nicho[i,j,2] +
+                        Egoismo[i,j,3] * Especies_Nicho[i,j,3])
+            """
+            E_Total += (Egoismo[i,j,0] +
+                        Egoismo[i,j,1] +
+                        Egoismo[i,j,2] +
+                        Egoismo[i,j,3])
+            """ 
+        for j in range(0,N_Especies):    
+            Egoismo_Relativo[i,j,0] = Egoismo[i,j,0] / E_Total
+            Egoismo_Relativo[i,j,1] = Egoismo[i,j,1] / E_Total
+            Egoismo_Relativo[i,j,2] = Egoismo[i,j,2] / E_Total
+            Egoismo_Relativo[i,j,3] = Egoismo[i,j,3] / E_Total
+
+    return [Egoismo, Egoismo_Relativo, Egoismo_Especies]

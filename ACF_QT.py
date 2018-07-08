@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Qt Functions
-v0.5.0
+v0.5.1
 @author: Carlos Villagrasa Guerrero
 """
 import os
@@ -12,6 +12,7 @@ import ACF, ACF_FILE
 from random import randint, shuffle
 import numpy
 import matplotlib.pyplot as plt #for plot
+#from matplotlib.widgets import Slider
 
 qtMain = "AUTOMATA_CELULAR.ui" # Enter file here.
 qtSimulation = "SIMULATION.ui"
@@ -310,7 +311,7 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
         """
         Next button behaviour
         """
-        global Data_Especies,Especies_Nicho, N_Nichos, Muertes, Deaths, Reproduction, Resources
+        global Data_Especies,Especies_Nicho, N_Nichos, Muertes, Deaths, Reproduction, Resources, Graphic_greed
         for t in range(0,self.GEN_STEP.value()):
             f = open("out.txt",'a')
             g = open("flex.txt",'a')
@@ -322,7 +323,7 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
             print("GENERACIÓN " + str(self.GEN.intValue()), file = g)
             print("--------------------------------------------------------------------------------------------", file = g)
             """
-            Agrupation/Asociation
+            Aggrupation/Association
             """
             self.Actual.setText("ASOCIACIÓN/AGRUPACIÓN")
             print(Especies_Nicho, file = f)
@@ -332,7 +333,6 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
             print("Association", file = g)
             print("-------------------------------------------------", file = g)
 
-
             for i in range(0,N_Nichos):
                 self.progressBar.setValue((i/N_Nichos)*100)
                 
@@ -341,9 +341,18 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
                 ACF.node_asociation(Especies_Nicho, i, Muertes, Data_Especies)
                 
             print("FIN DE ASO/AGR", file = f)
-            print(Especies_Nicho, file = f)
-            #print(Especies_Nicho)
-            #print(str(Especies_Nicho)) 
+            print(Especies_Nicho, file = f) 
+
+            """
+            Greed calculation
+            """
+            
+            [Egoismo, Egoismo_Relativo, Egoismo_Especies] = ACF.greed_calc(Especies_Nicho, N_Nichos, N_Especies, Data_Especies)
+
+            print("GREED", file = f)
+            print(Egoismo_Especies, file = f)
+            print(Egoismo, file = f)
+            print(Egoismo_Relativo, file = f)
 
             """
             Group selection
@@ -376,7 +385,7 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
             print(Especies_Nicho, file = f)
 
             """
-            Consumption
+            Individual selection
             """
             self.Actual.setText("SELECCIÓN DE INDIVIDUAL")
             if Reproduction != 0:
@@ -387,40 +396,9 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
                 
             print("FIN DE SI", file = f)
             print(Especies_Nicho, file = f)
-            
-            """
-            Cálculo de E
-            """
-            
-            Egoismo = numpy.zeros((N_Nichos,N_Especies,4))
-            Egoismo_Relativo = numpy.zeros((N_Nichos,N_Especies,4))
-            Egoismo_Especies = Especies_Nicho
-            E_Total = 0
-
-            for i in range(0,N_Nichos):
-                E_Total = 0
-                for j in range(0,N_Especies):
-                    Egoismo[i,j,0] = 1
-                    Egoismo[i,j,1] = 1
-                    Egoismo[i,j,2] = Data_Especies[j,0] / (Data_Especies[j,0] + Data_Especies[j,4])
-                    Egoismo[i,j,3] = Data_Especies[j,0] / (Data_Especies[j,0] + Data_Especies[j,4])
-                    E_Total += (Egoismo[i,j,0] * Especies_Nicho[i,j,0] +
-                                Egoismo[i,j,1] * Especies_Nicho[i,j,1] +
-                                Egoismo[i,j,2] * Especies_Nicho[i,j,2] +
-                                Egoismo[i,j,3] * Especies_Nicho[i,j,3]) 
-                for j in range(0,N_Especies):    
-                    Egoismo_Relativo[i,j,0] = Egoismo[i,j,0] / E_Total
-                    Egoismo_Relativo[i,j,1] = Egoismo[i,j,1] / E_Total
-                    Egoismo_Relativo[i,j,2] = Egoismo[i,j,2] / E_Total
-                    Egoismo_Relativo[i,j,3] = Egoismo[i,j,3] / E_Total
-            print("GREED", file = f)
-            print(Egoismo_Especies, file = f)
-            print(Egoismo_Especies)
-            print(Egoismo, file = f)
-            print(Egoismo_Relativo, file = f)
 
             """
-            Reproducción
+            Reproduction
             """
 
             self.Actual.setText("REPRODUCCIÓN")
@@ -517,50 +495,66 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
                 #ACF.change_item(self.Display_Table,i,1,str(Temp)) #Actual
                 #ACF.change_item(self.Display_Table,i,2,str(Temp_Acc)) #Accumulado
             """  
-            
-            
-            #Graphic representation does'nt work on pyinstaller
+
             if self.Graph_Check.isChecked():
                 plt.ion()
                 plt.show()
                 self.Actual.setText("GRÁFICO")
                 gen = self.GEN.intValue()
-                #app.processEvents()
                 
                 # create data
                 x = numpy.zeros(N_Nichos*N_Especies*4)
                 y = numpy.zeros(N_Nichos*N_Especies*4)
                 z = numpy.zeros(N_Nichos*N_Especies*4)
                 c = numpy.zeros(N_Nichos*N_Especies*4)
-               
-                #print(Especies_Nicho)
-                
+
+                P = numpy.zeros(N_Nichos)
+                N = numpy.zeros(N_Nichos)
+                D = numpy.zeros(N_Nichos)
+
+
+                #print(P)
+                #print(Muertes)
+
+                for i in range(0,N_Nichos):
+                    """
+                    not_count = 0
+                    for j in range(0,N_Especies):
+                        if ((Muertes[i,j,0]+Muertes[i,j,1]) != 0):
+                            P[i] += Muertes[i,j,1]/(Muertes[i,j,0]+Muertes[i,j,1])
+                        else:
+                            not_count += 1
+                    not_count = 0 #fancier...
+                    P[i] = P[i] / (N_Especies - not_count)
+                    """
+                    
+                    for j in range(0,N_Especies):
+                        N[i] += Muertes[i,j,1]
+                        D[i] += Muertes[i,j,0]+Muertes[i,j,1]
+
+                    P[i] = N[i] / D[i]
+                    #P[i] = N[i] / D[i]
+                    
+
+                #print(P)
+
                 for i in range(0,N_Nichos):
                     for j in range(0,N_Especies):
                         for k in range(0,4):
-                            #print(i+1)
-                            #print(j+1)
-                            #print(Especies_Nicho[i,j,:].sum())
-                            
 
-                            """
-                            Muertes
-                            0->Group selection deaths
-                            1->Individual selection deaths
-                            """
                             if ((Muertes[i,j,0]+Muertes[i,j,1]) == 0):
                                 x[i*N_Especies*4 + j*4 + k] = 50
                             else:
-                                x[i*N_Especies*4 + j*4 + k] = (Muertes[i,j,1]/(Muertes[i,j,0]+Muertes[i,j,1])) * 100
-                            y[i*N_Especies*4 + j*4 + k] = Egoismo_Relativo[i,j,k] * 100 * Egoismo_Especies[i,j,k] 
+                                #x[i*N_Especies*4 + j*4 + k] = (Muertes[i,j,1]/(Muertes[i,j,0]+Muertes[i,j,1])) * 100
+
+                                x[i*N_Especies*4 + j*4 + k] = P[i] * 100
+                            y[i*N_Especies*4 + j*4 + k] = Egoismo[i,j,k] * 100
+                            #y[i*N_Especies*4 + j*4 + k] = Egoismo_Relativo[i,j,k] * 100 #* Egoismo_Especies[i,j,k]
+
                             z[i*N_Especies*4 + j*4 + k] = Egoismo_Especies[i,j,k]
                             c[i*N_Especies*4 + j*4 + k] = j
                            
-                            self.progressBar.setValue((i/N_Nichos)*100)
-                            #print(x)
-                            #print(y)
-                            #print(z)
-                            #print(c)       
+                            self.progressBar.setValue((i/N_Nichos)*100)       
                 
                 plt.clf()
                 plt.figure("Graphic")
@@ -574,11 +568,18 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
                 plt.ylim([-10,110])
                 plt.colorbar(cmap=plt.cm.jet)
                 plt.title('Relative graphic representation {0}'.format(gen))
-                plt.draw()
-                plt.pause(0.005)
-                #plt.ion()
-                #plt.show(block = False)
-                #plt.show()
+
+                """
+                spos = Slider(0, 'Pos', 0.1, 90.0)
+
+                def update(val):
+                    pos = spos.val
+                    ax.axis([pos,pos+10,-1,1])
+                    fig.canvas.draw_idle()
+
+                spos.on_changed(update)
+                """
+                plt.pause(0.001)
 
             self.Actual.setText("")
             self.progressBar.setValue(0)
@@ -617,6 +618,7 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
             
             f.close()
         #self.GEN.display(self.GEN.intValue() + self.GEN_STEP.value())
+        plt.show(block = True)
         
         
         

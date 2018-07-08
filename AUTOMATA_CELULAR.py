@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Main
-v0.5.0
+v0.5.1
 @author: Carlos Villagrasa Guerrero
 
 python 3
@@ -30,7 +30,8 @@ args = parser.parse_args()
 #    print("verbosity turned on")
 #    print(args.echo)
 
-
+import warnings
+warnings.filterwarnings("ignore")
 
 from PyQt5.QtCore import QT_VERSION_STR
 from PyQt5.Qt import PYQT_VERSION_STR
@@ -113,6 +114,8 @@ else:
         print("FIN DE ASO/AGR", file = f)
         print(Especies_Nicho, file = f)
 
+        [Egoismo, Egoismo_Relativo, Egoismo_Especies] = ACF.greed_calc(Especies_Nicho, N_Nichos, N_Especies, Data_Especies)
+
         #Resets deaths for this generation
         Muertes = numpy.zeros((N_Nichos,N_Especies,2))
 
@@ -130,6 +133,29 @@ else:
         print("reordenado: 1->DF/IF; 2->DF", file = f)
         print(order_if, file = f)    
         print(order, file = f) 
+
+        for i in range(0,N_Nichos):
+            [Especies_Nicho, Muertes] = ACF.node_GS(order, order_if, i, Especies_Nicho, Muertes, Deaths, Data_Especies)
+        
+        print("FIN DE SG", file = f)
+        print(Especies_Nicho, file = f)
+
+        """
+        Individual selection
+        """
+        if Reproduction != 0:
+            for i in range(0,N_Nichos):
+
+                Especies_Nicho = ACF.node_consumption(Especies_Nicho, i, Resources, Data_Especies, N_Especies, Muertes, Reproduction)
+            
+        print("FIN DE SI", file = f)
+        print(Especies_Nicho, file = f)
+
+
+
+        
+
+
 
 
 
