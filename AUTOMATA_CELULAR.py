@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Main
-v0.5.1
+v0.6.2
 @author: Carlos Villagrasa Guerrero
 
 python 3
@@ -9,16 +9,8 @@ numpy
 pip3 install matplotlib
 pip3 install pyqt5
 """
-"""
-Comprobación de librerías y ficheros necesarios
-Argument vectors comandos de ejecución optparse
-
-"""
 import argparse
 parser = argparse.ArgumentParser()
-#parser.add_argument("echo", help="echo the string you use here")
-#parser.add_argument("square", help="display a square of a given number", type=int)
-#parser.add_argument("-v", "--verbose", help="increase output verbosity", default=False, action="store_true")
 parser.add_argument("-n", "--nogui", help="Run the program without GUI (must enter file [-f] name that exist on data folder and generations [-g] to run)", 
 					default=False, action="store_true")
 parser.add_argument("-f", "--file", help="File name")
@@ -26,9 +18,6 @@ parser.add_argument("-g", "--gen", help="Generations to run", type=int)
 
 
 args = parser.parse_args()
-#if args.verbose:
-#    print("verbosity turned on")
-#    print(args.echo)
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -46,11 +35,8 @@ import os
 
 from PyQt5 import uic, QtWidgets
 
-
-#import pyqtgraph as pg
 import numpy
 import ACF, ACF_QT, ACF_FILE
-
 
 numpy.set_printoptions(threshold=numpy.inf)
 
@@ -81,6 +67,18 @@ else:
 
     #Write initial data 
     ACF_FILE.data_write(args.file, Data_Especies, Especies_Nicho, N_Especies, 'w')
+
+    #Greed calculation
+    Egoismo_Relativo = ACF.greed_calc(Data_Especies, N_Nichos, N_Especies)
+
+    #Initialize Historic data
+    Historic = [[] for _ in range(6)]
+    Historic[0].append(Names)
+    Historic[1].append(Data_Especies)
+    Historic[2].append(Especies_Nicho)
+    Historic[3].append([]) #Individual selective pressure
+    Historic[4].append(Egoismo_Relativo) #Greed
+    Historic[5].append([]) #Species quantity for Greed
     
     #Output files for data checking
     f = open("out.txt",'w')
@@ -88,8 +86,10 @@ else:
     f = open("flex.txt",'w')
     f.close()
 
-    for t in range(1, args.gen + 1):
 
+
+    for t in range(1, args.gen + 1):
+        print(t)
         f = open("out.txt",'a')
         g = open("flex.txt",'a')
 
@@ -107,35 +107,30 @@ else:
 
         for i in range(0,N_Nichos):
 
-            ACF.node_agrupation(Especies_Nicho, i, Muertes, Data_Especies)
+            Especies_Nicho[i,:,:] = ACF.node_agrupation(Especies_Nicho[i,:,:], Muertes[i,:,:], Data_Especies)
                     
-            ACF.node_asociation(Especies_Nicho, i, Muertes, Data_Especies)
+            Especies_Nicho[i,:,:] = ACF.node_asociation(Especies_Nicho[i,:,:], Muertes[i,:,:], Data_Especies)
 
         print("FIN DE ASO/AGR", file = f)
         print(Especies_Nicho, file = f)
 
-        [Egoismo, Egoismo_Relativo, Egoismo_Especies] = ACF.greed_calc(Especies_Nicho, N_Nichos, N_Especies, Data_Especies)
+        Egoismo_Especies = Especies_Nicho.copy()
 
         #Resets deaths for this generation
         Muertes = numpy.zeros((N_Nichos,N_Especies,2))
 
-        #Order by direct fitness/indirect fitness proportion
-        order_if = numpy.argsort(Data_Especies[:,0]/Data_Especies[:,4])
-        order = numpy.argsort(Data_Especies[:,0])
+        #Order by greed
+        order = numpy.dstack(numpy.unravel_index(numpy.argsort(Egoismo_Relativo[0,:,:].ravel()), (N_Especies, 4)))
 
-        print(order_if, file = f)    
         print(order, file = f)
-        
-        order_if = ACF.reorder(order_if, 1, Data_Especies)
 
-        order = ACF.reorder(order, 0, Data_Especies)
+        order = ACF.reorder_Greed(order, Egoismo_Relativo)
         
-        print("reordenado: 1->DF/IF; 2->DF", file = f)
-        print(order_if, file = f)    
+        print("reordenado", file = f)   
         print(order, file = f) 
-
+        
         for i in range(0,N_Nichos):
-            [Especies_Nicho, Muertes] = ACF.node_GS(order, order_if, i, Especies_Nicho, Muertes, Deaths, Data_Especies)
+            [Especies_Nicho[i,:,:], Muertes[i,:,:]] = ACF.node_GS_Greed(order, Especies_Nicho[i,:,:], Muertes[i,:,:], Deaths)
         
         print("FIN DE SG", file = f)
         print(Especies_Nicho, file = f)
@@ -143,13 +138,58 @@ else:
         """
         Individual selection
         """
-        if Reproduction != 0:
+        if Consumption != 0:
             for i in range(0,N_Nichos):
 
-                Especies_Nicho = ACF.node_consumption(Especies_Nicho, i, Resources, Data_Especies, N_Especies, Muertes, Reproduction)
+                [Especies_Nicho[i,:,:], Muertes[i,:,:]] = ACF.node_consumption(Especies_Nicho[i,:,:], Resources, Data_Especies, N_Especies, Muertes[i,:,:], Consumption)
             
         print("FIN DE SI", file = f)
         print(Especies_Nicho, file = f)
+
+        """     
+        Reproduction
+        """
+        for i in range(0,N_Nichos):
+            Especies_Nicho[i,:,:] = ACF.node_reproduction(Especies_Nicho[i,:,:], Data_Especies, N_Especies)
+
+        print("FIN DE REPRODUCCIÓN", file = f)
+        print(Especies_Nicho, file = f)
+
+        """
+        Flexibility
+        """
+
+        for i in range(0,N_Nichos):
+            Especies_Nicho[i,:,:] = ACF.node_flexibility(Especies_Nicho[i,:,:], Data_Especies, N_Especies, Muertes[i,:,:])
+
+        print("FIN DE FLEXIBILIDAD", file = f)
+        print(Especies_Nicho, file = f)    
+
+        Especies_Nicho = ACF.distribution(Especies_Nicho, N_Nichos,N_Especies)
+
+        print("FIN DE REPARTO", file = f)
+        print(Especies_Nicho, file = f)
+        print("MUERTES", file = f)
+        print(Muertes, file = f) 
+
+        """
+        Individual selection pressure
+        """
+        P = ACF.IS_pressure(Muertes, N_Especies, N_Nichos)
+
+        Historic[0].append(Names) #Names
+        Historic[1].append(Data_Especies) #Actual data
+        Historic[2].append(Especies_Nicho) #Species on each node
+        Historic[3].append(P) #Individual selective pressure (DEATHS)
+        Historic[4].append(Egoismo_Relativo) #Greed
+        Historic[5].append(Egoismo_Especies) #Species quantity for Greed 
+        
+    ACF_FILE.bubbles_write(Historic, args.file, N_Especies, N_Nichos)
+
+
+
+
+
 
 
 

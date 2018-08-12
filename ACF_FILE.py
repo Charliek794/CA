@@ -1,12 +1,111 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular File Functions
-v0.5.1
+v0.6.2
 @author: Carlos Villagrasa Guerrero
 """
 import csv
 import os
 from PyQt5 import QtWidgets
+
+def bubbles_write(Historic, Sim_name, N_Especies, N_Nichos):
+    """
+    bubble_write(Hitoric)
+    Historic[0].append(Names) #Names
+    Historic[1].append(Data_Especies) #Actual data
+    Historic[2].append(Especies_Nicho) #Species on each node
+    Historic[3].append(P) #Individual selective pressure (DEATHS)
+    Historic[4].append(Egoismo_Relativo) #Greed
+    Historic[5].append(Egoismo_Especies) #Species quantity for Greed 
+    """
+    #print(Historic)
+
+    #print("DATOS")
+    fpath = os.path.join("results", Sim_name)
+
+    if not os.path.isdir(fpath):
+        os.mkdir(fpath)
+    try:
+        with open(os.path.join(fpath, "bubbles.csv") , 'w', newline='') as csvfile: 
+            
+            spamwriter = csv.writer(csvfile)
+            tobewriten = []
+            tobewriten += ['country'] + ['indicator']
+            for i in range(0, len(Historic[0])):
+                tobewriten += [str(i + 1)]
+            spamwriter.writerow(tobewriten)
+
+            for j in range(0, N_Nichos):
+                for k in range(0,N_Especies):
+                    for x in range(0,4):
+                        if x == 0:
+                            name = Historic[0][0][k] + "_I_N" + str(j) 
+                            IRARR = "Individual"
+                        elif x == 1:
+                            name = Historic[0][0][k] + "_R_N" + str(j)
+                            IRARR = "Recipient"
+                        elif x == 2:
+                            name = Historic[0][0][k] + "_A_N" + str(j)
+                            IRARR = "Actor"
+                        elif x == 3:
+                            name = Historic[0][0][k] + "_RR_N" + str(j)
+                            IRARR = "Reciproc"
+                        for y in range(0,9): 
+                            tobewriten = [name]
+                            if y == 0:
+                                tobewriten += ['Specie']
+                                for i in range(0, len(Historic[0])):
+                                    tobewriten += [Historic[0][i][k]]
+                            elif y == 1:
+                                tobewriten += ['Quantity']
+                                for i in range(0, len(Historic[0])):
+                                    tobewriten += [Historic[2][i][j,k,x]]
+                            
+                            elif y == 2:
+                                tobewriten += ['At First Quantity']
+                                tobewriten += ['']
+                                for i in range(1, len(Historic[0])):
+                                    tobewriten += [Historic[5][i][j,k,x]]
+
+                            elif y == 3:
+                                tobewriten += ['Greed']
+                                tobewriten += ['']
+                                for i in range(1, len(Historic[0])):
+                                    tobewriten += [int(Historic[4][i][j,k,x] * 100)]
+
+                            elif y == 4:
+                                tobewriten += ['Individual Pressure']
+                                tobewriten += ['']
+                                for i in range(1, len(Historic[0])):
+                                    tobewriten += [int(Historic[3][i][j] * 100)]
+
+                            elif y == 5:
+                                tobewriten += ['Node']
+                                for i in range(0, len(Historic[0])):
+                                    tobewriten += [j]
+
+                            elif y == 6:
+                                tobewriten += ['IRARR']
+                                for i in range(1, len(Historic[0])):
+                                    tobewriten += [IRARR]
+
+                            elif y == 7:
+                                tobewriten += ['N_IRARR']
+                                for i in range(1, len(Historic[0])):
+                                    tobewriten += [x]
+
+                            elif y == 8:
+                                tobewriten += ['N_Specie']
+                                for i in range(1, len(Historic[0])):
+                                    tobewriten += [k]
+                            
+                            
+                            spamwriter.writerow(tobewriten)
+                            
+    except IOError:
+        print("ERROR: Oops! Something is wrong with the file. Try again...")
+
+
 
 def data_write(Name, Data_Especies, Especies_Nicho, N_Especies, mode):
     """
@@ -125,7 +224,7 @@ def Load(File):
                     Nodes = int(row[7])
                     Resources = int(row[8])
                     Consumption = int(row[9])
-                    Deaths = int(row[10])
+                    Deaths = float(row[10])
                 Names.append(row[0])
                 Datos[0].append(row[1])
                 Datos[1].append(row[2])

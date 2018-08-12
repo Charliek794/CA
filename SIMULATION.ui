@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>SIMULATION v0.5.1</string>
+   <string>SIMULATION v0.6.2</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -53,16 +53,6 @@
       <column>
        <property name="text">
         <string>ESPECIE</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>PRESIÓN INDIVIDUAL RELATIVA</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>EFICACIA BIOLÓGICA INDIVIDUAL</string>
        </property>
       </column>
       <column>
