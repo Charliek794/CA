@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Main
-v0.6.2
+v0.6.3
 @author: Carlos Villagrasa Guerrero
 
 python 3
@@ -107,7 +107,7 @@ else:
 
         for i in range(0,N_Nichos):
 
-            Especies_Nicho[i,:,:] = ACF.node_agrupation(Especies_Nicho[i,:,:], Muertes[i,:,:], Data_Especies)
+            Especies_Nicho[i,:,:] = ACF.node_agrupation_percentage(Especies_Nicho[i,:,:], Muertes[i,:,:], Data_Especies)
                     
             Especies_Nicho[i,:,:] = ACF.node_asociation(Especies_Nicho[i,:,:], Muertes[i,:,:], Data_Especies)
 
@@ -116,20 +116,22 @@ else:
 
         Egoismo_Especies = Especies_Nicho.copy()
 
+        #Greed calculation
+        Egoismo_Relativo = ACF.greed_calc(Especies_Nicho, Data_Especies, N_Nichos, N_Especies)
+
         #Resets deaths for this generation
         Muertes = numpy.zeros((N_Nichos,N_Especies,2))
-
-        #Order by greed
-        order = numpy.dstack(numpy.unravel_index(numpy.argsort(Egoismo_Relativo[0,:,:].ravel()), (N_Especies, 4)))
-
-        print(order, file = f)
-
-        order = ACF.reorder_Greed(order, Egoismo_Relativo)
-        
-        print("reordenado", file = f)   
-        print(order, file = f) 
         
         for i in range(0,N_Nichos):
+            #Order by greed
+            order = numpy.dstack(numpy.unravel_index(numpy.argsort(Egoismo_Relativo[i,:,:].ravel()), (N_Especies, 4)))
+
+            print(order, file = f)
+
+            order = ACF.reorder_Greed(order, Egoismo_Relativo[i,:,:])
+            
+            print("reordenado", file = f)   
+            print(order, file = f) 
             [Especies_Nicho[i,:,:], Muertes[i,:,:]] = ACF.node_GS_Greed(order, Especies_Nicho[i,:,:], Muertes[i,:,:], Deaths)
         
         print("FIN DE SG", file = f)
@@ -175,7 +177,7 @@ else:
         """
         Individual selection pressure
         """
-        P = ACF.IS_pressure(Muertes, N_Especies, N_Nichos)
+        P = ACF.IS_pressure(Especies_Nicho, Muertes, N_Especies, N_Nichos)
 
         Historic[0].append(Names) #Names
         Historic[1].append(Data_Especies) #Actual data

@@ -2,7 +2,7 @@
 
 """
 Automata Celular Qt Functions
-v0.6.2
+v0.6.3
 @author: Carlos Villagrasa Guerrero
 """
 
@@ -170,7 +170,11 @@ def read_data_from_qt(window, sim):
         Data_Especies[i,1] = int(window.Data_Table.item(i,1).text())    #Catidad inicial
         Data_Especies[i,0] = int(window.Data_Table.item(i,2).text())    #direct fitness
         Data_Especies[i,4] = int(window.Data_Table.item(i,3).text())    #indirect fitness
-       
+
+        if window.Data_Table.item(i,6).text(): #flexibility
+            Data_Especies[i,5] = int(window.Data_Table.item(i,6).text())    
+        else:
+            Data_Especies[i,5] = 0
             
         if window.Data_Table.item(i,4).text(): #Asociación
             Data_Especies[i,2] = find_item(window.Data_Table, window.Data_Table.item(i,4).text())
@@ -188,7 +192,7 @@ def read_data_from_qt(window, sim):
             Data_Especies[i,3] = -1
             Data_Especies[i,7] = -1
        
-        Data_Especies[i,5] = int(window.Data_Table.item(i,6).text())
+        
         
     sim.Display_Table.setColumnCount(N_Nichos + 2)
 
@@ -273,7 +277,7 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
         ACF_FILE.data_write(window.CSV_NAME.text(), Data_Especies, Especies_Nicho, N_Especies, 'w')
         
         #Greed calculation
-        Egoismo_Relativo = ACF.greed_calc(Data_Especies, N_Nichos, N_Especies)
+        Egoismo_Relativo = ACF.greed_calc(Especies_Nicho, Data_Especies, N_Nichos, N_Especies)
 
         #Initialize Historic data
         Historic = [[] for _ in range(6)]
@@ -314,7 +318,9 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
         global Data_Especies,Especies_Nicho, N_Nichos, N_Especies, Muertes, Deaths ,Reproduction, Resources, window, Names, Egoismo_Relativo
         
         [Names, Data_Especies, N_Nichos, N_Especies, Deaths, Reproduction, Resources] = read_data_from_qt(window, self)
-        Egoismo_Relativo = ACF.greed_calc(Data_Especies, N_Nichos, N_Especies)
+
+        #Greed calculation
+        Egoismo_Relativo = ACF.greed_calc(Especies_Nicho, Data_Especies, N_Nichos, N_Especies)
 
         Especies_Nicho = ACF.resize_matrix_3d(Especies_Nicho, N_Nichos, N_Especies)
         Muertes = ACF.resize_matrix_3d(Muertes, N_Nichos, N_Especies)
@@ -361,6 +367,9 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
             """
             Egoismo_Especies = Especies_Nicho.copy()
 
+            #Greed calculation
+            Egoismo_Relativo = ACF.greed_calc(Especies_Nicho, Data_Especies, N_Nichos, N_Especies)
+
             print("GREED", file = f)
             print(Egoismo_Especies, file = f)
             print(Egoismo_Relativo, file = f)
@@ -372,18 +381,17 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
 
             #Resets deaths for this generation
             Muertes = numpy.zeros((N_Nichos,N_Especies,2))
-
-            #Order by greed
-            order = numpy.dstack(numpy.unravel_index(numpy.argsort(Egoismo_Relativo[0,:,:].ravel()), (N_Especies, 4)))
- 
-            print(order, file = f)
-
-            order = ACF.reorder_Greed(order, Egoismo_Relativo)
-            
-            print("reordenado", file = f)   
-            print(order, file = f) 
             
             for i in range(0,N_Nichos):
+                #Order by greed
+                order = numpy.dstack(numpy.unravel_index(numpy.argsort(Egoismo_Relativo[i,:,:].ravel()), (N_Especies, 4)))
+     
+                print(order, file = f)
+
+                order = ACF.reorder_Greed(order, Egoismo_Relativo[i,:,:])
+                
+                print("reordenado", file = f)   
+                print(order, file = f) 
                 self.progressBar.setValue((i/N_Nichos)*100)
                 [Especies_Nicho[i,:,:], Muertes[i,:,:]] = ACF.node_GS_Greed(order, Especies_Nicho[i,:,:], Muertes[i,:,:], Deaths)
             
