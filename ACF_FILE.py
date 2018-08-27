@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular File Functions
-v0.6.3
+v0.6.4
 @author: Carlos Villagrasa Guerrero
 """
 import csv
@@ -50,7 +50,7 @@ def bubbles_write(Historic, Sim_name, N_Especies, N_Nichos):
                         elif x == 3:
                             name = Historic[0][0][k] + "_RR_N" + str(j)
                             IRARR = "Reciproc"
-                        for y in range(0,9): 
+                        for y in range(0,11): 
                             tobewriten = [name]
                             if y == 0:
                                 tobewriten += ['Specie']
@@ -99,6 +99,15 @@ def bubbles_write(Historic, Sim_name, N_Especies, N_Nichos):
                                 for i in range(1, len(Historic[0])):
                                     tobewriten += [k]
                             
+                            elif y == 9:
+                                tobewriten += ['Individual Deaths']
+                                for i in range(1, len(Historic[0])):
+                                    tobewriten += [Historic[6][i][j,k,1]]
+
+                            elif y == 10:
+                                tobewriten += ['Group Deaths']
+                                for i in range(1, len(Historic[0])):
+                                    tobewriten += [Historic[6][i][j,k,0]]
                             
                             spamwriter.writerow(tobewriten)
                             

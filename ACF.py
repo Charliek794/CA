@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Functions
-v0.6.3
+v0.6.4
 @author: Carlos Villagrasa Guerrero
 """
 
@@ -233,7 +233,7 @@ def node_agrupation_percentage(Especies_Nicho, Muertes, Data_Especies, N_Especie
                         Especies_Nicho[int(Data_Especies[j,7]),0] = Especies_Nicho[int(Data_Especies[j,7]),0] + 1
                         Especies_Nicho[j,0] = Especies_Nicho[j,0] - 2
                         temp_sin_asociar[j] = temp_sin_asociar[j] - 2
-                        temp_to_agr[j] = temp_to_agr - 2      
+                        temp_to_agr[j] = temp_to_agr[j] - 2      
 
             k = k +1
     return Especies_Nicho
@@ -408,6 +408,8 @@ def greed_calc(Especies_Nicho, Data_Especies, N_Nichos, N_Especies):
                     Egoismo[i,j,3] = Data_Especies[j,0] + (Data_Especies[j,0] + Data_Especies[int(Data_Especies[j,2]),4])/(Data_Especies[j,0] + Data_Especies[j,4])
 
         MAX = numpy.amax(Egoismo[i,:,:])
+        if MAX == 0:
+            MAX = 1
         for j in range(0,N_Especies):    
             Egoismo_Relativo[i,j,0] = Egoismo[i,j,0] / MAX
             Egoismo_Relativo[i,j,1] = Egoismo[i,j,1] / MAX

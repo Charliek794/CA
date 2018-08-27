@@ -2,7 +2,7 @@
 
 """
 Automata Celular Qt Functions
-v0.6.3
+v0.6.4
 @author: Carlos Villagrasa Guerrero
 """
 
@@ -280,13 +280,14 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
         Egoismo_Relativo = ACF.greed_calc(Especies_Nicho, Data_Especies, N_Nichos, N_Especies)
 
         #Initialize Historic data
-        Historic = [[] for _ in range(6)]
+        Historic = [[] for _ in range(7)]
         Historic[0].append(Names)
         Historic[1].append(Data_Especies)
         Historic[2].append(Especies_Nicho)
         Historic[3].append([]) #Individual selective pressure
         Historic[4].append(Egoismo_Relativo) #Greed
         Historic[5].append([]) #Species quantity for Greed
+        Historic[6].append([]) #Deaths
 
         #Output files for data checking
         f = open("out.txt",'w')
@@ -498,7 +499,8 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
             Historic[2].append(Especies_Nicho) #Species on each node
             Historic[3].append(P) #Individual selective pressure (DEATHS)
             Historic[4].append(Egoismo_Relativo) #Greed
-            Historic[5].append(Egoismo_Especies) #Species quantity for Greed 
+            Historic[5].append(Egoismo_Especies) #Species quantity for Greed
+            Historic[6].append(Muertes) #Species quantity for Greed 
             
             ACF_FILE.bubbles_write(Historic, Sim_name, N_Especies, N_Nichos)
 
