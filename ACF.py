@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Functions
-v0.6.4
+v0.7.0
 @author: Carlos Villagrasa Guerrero
 """
 
@@ -339,6 +339,40 @@ def node_GS_Greed(order, Especies_Nicho, Muertes, Deaths):
         if k > 0:
             o = o - 1
     
+    return [Especies_Nicho, Muertes]
+
+def node_GS_new(Especies_Nicho, Muertes, Deaths, Egoismo_Relativo, Lambda, N_Especies):
+    """
+    node_GS(order, i, Especies_Nicho, Muertes, Deaths)
+    Description:
+        -This function does the group selection on a node 
+    Input:
+        -order: Array order to be reordered
+        -inclusive: flag for using DF or DF/IF
+        -Data_Especies: Array with data for the species       
+    """
+    k = Deaths/100 * Especies_Nicho[:,:].sum(axis = 0).sum()
+    k = math.ceil(k)
+    
+    Distr = numpy.zeros((N_Especies,4))
+
+    for i in range(0,N_Especies):
+        for j in range(0,4):
+            Distr[i,j] = math.exp(Lambda * Egoismo_Relativo[i,j])
+
+    SUM_D = numpy.sum(Distr)
+    for i in range(0,N_Especies):
+        for j in range(0,4):
+            if Especies_Nicho[i,j] > 0:
+
+                if math.ceil(Distr[i,j] * k / SUM_D) < Especies_Nicho[i,j]:
+                    Muertes[i,0] += math.ceil(Distr[i,j] * k / SUM_D)
+                    Especies_Nicho[i,j] -= Muertes[i,0]
+                else:
+                    Muertes[i,0] += Especies_Nicho[i,j]
+
+                    Especies_Nicho[i,j] = 0
+
     return [Especies_Nicho, Muertes]
 
 def node_consumption(Especies_Nicho, Resources, Data_Especies, N_Especies, Muertes, Reproduction):

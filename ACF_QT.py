@@ -2,7 +2,7 @@
 
 """
 Automata Celular Qt Functions
-v0.6.4
+v0.7.0
 @author: Carlos Villagrasa Guerrero
 """
 
@@ -148,6 +148,7 @@ def read_data_from_qt(window, sim):
     Deaths = window.Deaths.value()
     Reproduction = window.Reproduction.value()
     Resources = window.Resources.value()
+    Lambda = window.Lambda.value()
     
     #Adjust table to number of species
     sim.Display_Table.setRowCount(N_Especies + 1)
@@ -199,7 +200,7 @@ def read_data_from_qt(window, sim):
     for i in range(0,N_Nichos):
         sim.Display_Table.setHorizontalHeaderItem(i + 2, QtWidgets.QTableWidgetItem("Nicho " + str(i + 1)))
   
-    return [Names, Data_Especies, N_Nichos, N_Especies, Deaths, Reproduction, Resources]
+    return [Names, Data_Especies, N_Nichos, N_Especies, Deaths, Reproduction, Resources, Lambda]
 
 class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
     """
@@ -242,7 +243,7 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
 
         #Set UI
         self.setupUi(self)
-        global Data_Especies, Especies_Nicho, N_Nichos, N_Especies, Muertes, Deaths, Reproduction, Resources, window, Historic, Names, Sim_name, Egoismo_Relativo
+        global Data_Especies, Especies_Nicho, N_Nichos, N_Especies, Muertes, Deaths, Reproduction, Resources, window, Historic, Names, Sim_name, Egoismo_Relativo, Lambda
         
         window = parent
         Sim_name = window.CSV_NAME.text()
@@ -250,7 +251,7 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
         
 
         #Get input Data and set Qt window for simulation
-        [Names, Data_Especies, N_Nichos, N_Especies, Deaths, Reproduction, Resources] = read_data_from_qt(window, self)
+        [Names, Data_Especies, N_Nichos, N_Especies, Deaths, Reproduction, Resources, Lambda] = read_data_from_qt(window, self)
 
         #Initialize Deaths array and Species array
         Muertes = numpy.zeros((N_Nichos, N_Especies, 2))
@@ -337,7 +338,7 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
         """
         Next button behaviour
         """
-        global Data_Especies,Especies_Nicho, N_Nichos, Muertes, Deaths, Reproduction, Resources, Graphic_greed, Historic, Names, Sim_name, Egoismo_Relativo
+        global Data_Especies,Especies_Nicho, N_Nichos, Muertes, Deaths, Reproduction, Resources, Graphic_greed, Historic, Names, Sim_name, Egoismo_Relativo, Lambda
         for t in range(0,self.GEN_STEP.value()):
             f = open("out.txt",'a')
 
@@ -378,6 +379,7 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
             """
             Group selection
             """
+            """
             self.Actual.setText("SELECCIÓN DE GRUPO")
 
             #Resets deaths for this generation
@@ -395,7 +397,19 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
                 print(order, file = f) 
                 self.progressBar.setValue((i/N_Nichos)*100)
                 [Especies_Nicho[i,:,:], Muertes[i,:,:]] = ACF.node_GS_Greed(order, Especies_Nicho[i,:,:], Muertes[i,:,:], Deaths)
+            """
+            self.Actual.setText("SELECCIÓN DE GRUPO")
+
+            #Resets deaths for this generation
+            Muertes = numpy.zeros((N_Nichos,N_Especies,2))
             
+            for i in range(0,N_Nichos):
+                
+                self.progressBar.setValue((i/N_Nichos)*100)
+                [Especies_Nicho[i,:,:], Muertes[i,:,:]] = ACF.node_GS_new(Especies_Nicho[i,:,:], Muertes[i,:,:], Deaths, Egoismo_Relativo[i,:,:], Lambda, N_Especies)
+
+
+
             print("FIN DE SG", file = f)
             print(Especies_Nicho, file = f)
 

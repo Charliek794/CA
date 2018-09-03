@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Main
-v0.6.4
+v0.7.0
 @author: Carlos Villagrasa Guerrero
 
 python 3

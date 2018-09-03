@@ -6,15 +6,25 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1308</width>
-    <height>809</height>
+    <width>1213</width>
+    <height>759</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Autómata Celular v0.6.4</string>
+   <string>Autómata Celular v0.7.0</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
+    <item row="4" column="10" colspan="2">
+     <widget class="QSpinBox" name="Resources">
+      <property name="maximum">
+       <number>999999999</number>
+      </property>
+      <property name="value">
+       <number>100</number>
+      </property>
+     </widget>
+    </item>
     <item row="1" column="0" rowspan="8" colspan="9">
      <widget class="QTableWidget" name="Data_Table">
       <property name="verticalScrollBarPolicy">
@@ -72,34 +82,38 @@
       </column>
      </widget>
     </item>
-    <item row="6" column="10">
-     <widget class="QSpinBox" name="Reproduction">
-      <property name="maximum">
-       <number>999999999</number>
-      </property>
-      <property name="value">
-       <number>100</number>
-      </property>
-     </widget>
-    </item>
-    <item row="11" column="1">
-     <widget class="QPushButton" name="Continue_Button">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Continuar simulación</string>
-      </property>
-     </widget>
-    </item>
-    <item row="11" column="7">
-     <widget class="Line" name="line_4">
+    <item row="0" column="9" rowspan="9" colspan="2">
+     <widget class="Line" name="line">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
      </widget>
     </item>
-    <item row="2" column="10">
+    <item row="1" column="10" colspan="2">
+     <widget class="QLabel" name="label_17">
+      <property name="text">
+       <string>CANTIDAD DE NICHOS</string>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" colspan="9">
+     <widget class="QLabel" name="label_12">
+      <property name="font">
+       <font>
+        <pointsize>20</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>ESPECIES</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="10" colspan="2">
      <widget class="QSpinBox" name="Nodes">
       <property name="minimum">
        <number>1</number>
@@ -112,38 +126,7 @@
       </property>
      </widget>
     </item>
-    <item row="11" column="6">
-     <widget class="QLineEdit" name="CSV_NAME"/>
-    </item>
-    <item row="11" column="3">
-     <widget class="QPushButton" name="Load_Button">
-      <property name="text">
-       <string>Cargar Configuración</string>
-      </property>
-     </widget>
-    </item>
-    <item row="11" column="4">
-     <widget class="QPushButton" name="Save_Button">
-      <property name="text">
-       <string>Guardar Configuración</string>
-      </property>
-     </widget>
-    </item>
-    <item row="9" column="0" colspan="11">
-     <widget class="Line" name="line_3">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="11" column="10">
-     <widget class="QPushButton" name="EXIT_Button">
-      <property name="text">
-       <string>EXIT</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="10">
+    <item row="3" column="10" colspan="2">
      <widget class="QLabel" name="label_10">
       <property name="font">
        <font>
@@ -167,10 +150,61 @@
       </property>
      </widget>
     </item>
-    <item row="11" column="5">
-     <widget class="QLabel" name="label">
+    <item row="11" column="0">
+     <widget class="QPushButton" name="Start_Button">
       <property name="text">
-       <string>NOMBRE DEL CSV</string>
+       <string>Iniciar simulación</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="0" colspan="12">
+     <widget class="Line" name="line_3">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="11">
+     <widget class="QDoubleSpinBox" name="Deaths">
+      <property name="maximum">
+       <double>100.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>5.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="1">
+     <widget class="QPushButton" name="Continue_Button">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Continuar simulación</string>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="4">
+     <widget class="QPushButton" name="Save_Button">
+      <property name="text">
+       <string>Guardar Configuración</string>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="11">
+     <widget class="QPushButton" name="EXIT_Button">
+      <property name="text">
+       <string>EXIT</string>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="6">
+     <widget class="QLineEdit" name="CSV_NAME"/>
+    </item>
+    <item row="11" column="3">
+     <widget class="QPushButton" name="Load_Button">
+      <property name="text">
+       <string>Cargar Configuración</string>
       </property>
      </widget>
     </item>
@@ -181,15 +215,52 @@
       </property>
      </widget>
     </item>
-    <item row="11" column="0">
-     <widget class="QPushButton" name="Start_Button">
+    <item row="11" column="5">
+     <widget class="QLabel" name="label">
       <property name="text">
-       <string>Iniciar simulación</string>
+       <string>NOMBRE DEL CSV</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="10">
-     <widget class="QSpinBox" name="Resources">
+    <item row="11" column="7">
+     <widget class="Line" name="line_4">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="11">
+     <widget class="QLabel" name="label_16">
+      <property name="text">
+       <string>MUERTES POR SELECCIÓN DE GRUPO (%)</string>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="10">
+     <widget class="QDoubleSpinBox" name="Lambda">
+      <property name="value">
+       <double>5.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="10" colspan="2">
+     <widget class="QLabel" name="label_14">
+      <property name="text">
+       <string>CONSUMO EN FUNCIÓN DEL INCLUSIVE FITNESS (%)</string>
+      </property>
+      <property name="scaledContents">
+       <bool>false</bool>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="10" colspan="2">
+     <widget class="QSpinBox" name="Reproduction">
       <property name="maximum">
        <number>999999999</number>
       </property>
@@ -199,12 +270,9 @@
      </widget>
     </item>
     <item row="7" column="10">
-     <widget class="QLabel" name="label_16">
+     <widget class="QLabel" name="label_2">
       <property name="text">
-       <string>MUERTES POR SELECCIÓN DE GRUPO (%)</string>
-      </property>
-      <property name="wordWrap">
-       <bool>true</bool>
+       <string>Lambda</string>
       </property>
      </widget>
     </item>
@@ -215,24 +283,7 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="9" rowspan="9">
-     <widget class="Line" name="line">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="10">
-     <widget class="QLabel" name="label_17">
-      <property name="text">
-       <string>CANTIDAD DE NICHOS</string>
-      </property>
-      <property name="wordWrap">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="10">
+    <item row="0" column="11">
      <widget class="QLabel" name="label_11">
       <property name="font">
        <font>
@@ -246,43 +297,6 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="0" colspan="9">
-     <widget class="QLabel" name="label_12">
-      <property name="font">
-       <font>
-        <pointsize>20</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>ESPECIES</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="10">
-     <widget class="QLabel" name="label_14">
-      <property name="text">
-       <string>CONSUMO EN FUNCIÓN DEL INCLUSIVE FITNESS (%)</string>
-      </property>
-      <property name="scaledContents">
-       <bool>false</bool>
-      </property>
-      <property name="wordWrap">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="8" column="10">
-     <widget class="QDoubleSpinBox" name="Deaths">
-      <property name="maximum">
-       <double>100.000000000000000</double>
-      </property>
-      <property name="value">
-       <double>5.000000000000000</double>
-      </property>
-     </widget>
-    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -290,7 +304,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1308</width>
+     <width>1213</width>
      <height>26</height>
     </rect>
    </property>
