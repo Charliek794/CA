@@ -2,7 +2,7 @@
 
 """
 Automata Celular Qt Functions
-v0.7.0
+v0.7.1
 @author: Carlos Villagrasa Guerrero
 """
 

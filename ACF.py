@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Functions
-v0.7.0
+v0.7.1
 @author: Carlos Villagrasa Guerrero
 """
 
@@ -415,6 +415,68 @@ def greed_calc(Especies_Nicho, Data_Especies, N_Nichos, N_Especies):
             if Especies_Nicho[i,j,0] == 0: #Individual
                 Egoismo[i,j,0] = 0
             else:    
+                Egoismo[i,j,0] = Data_Especies[j,0]
+
+            if Especies_Nicho[i,j,1] == 0: #Recipiente
+                Egoismo[i,j,1] = 0
+            else:
+                Egoismo[i,j,1] = Data_Especies[j,0] + Data_Especies[int(Data_Especies[j,2]),4]
+
+            if Especies_Nicho[i,j,2] == 0: #Actor
+                Egoismo[i,j,2] = 0
+            else:
+                Egoismo[i,j,2] = Data_Especies[j,0] - Data_Especies[j,4]
+
+            if Especies_Nicho[i,j,3] == 0: #Reciproco
+                Egoismo[i,j,3] = 0
+            else: 
+                Egoismo[i,j,3] = Data_Especies[j,0] + Data_Especies[int(Data_Especies[j,2]),4] - Data_Especies[j,4]
+
+        MIN = numpy.amin(Egoismo[i,:,:])
+        for j in range(0,N_Especies): 
+            if Especies_Nicho[i,j,0] == 0: #Individual
+                Egoismo[i,j,0] = 0
+            else:    
+                Egoismo[i,j,0] = Egoismo[i,j,0] - MIN + 1
+
+            if Especies_Nicho[i,j,1] == 0: #Recipiente
+                Egoismo[i,j,1] = 0
+            else:
+                Egoismo[i,j,1] = Egoismo[i,j,1] - MIN + 1
+
+            if Especies_Nicho[i,j,2] == 0: #Actor
+                Egoismo[i,j,2] = 0
+            else:
+                Egoismo[i,j,2] = Egoismo[i,j,2] - MIN + 1
+
+            if Especies_Nicho[i,j,3] == 0: #Reciproco
+                Egoismo[i,j,3] = 0
+            else: 
+                Egoismo[i,j,3] = Egoismo[i,j,3] - MIN + 1   
+
+        MAX = numpy.amax(Egoismo[i,:,:])
+        if MAX == 0:
+            MAX = 1
+        for j in range(0,N_Especies):    
+            Egoismo_Relativo[i,j,0] = Egoismo[i,j,0] / MAX
+            Egoismo_Relativo[i,j,1] = Egoismo[i,j,1] / MAX
+            Egoismo_Relativo[i,j,2] = Egoismo[i,j,2] / MAX
+            Egoismo_Relativo[i,j,3] = Egoismo[i,j,3] / MAX
+
+    return Egoismo_Relativo
+
+def greed_calc_old_2(Especies_Nicho, Data_Especies, N_Nichos, N_Especies):
+
+    Egoismo = numpy.zeros((N_Nichos,N_Especies,4))
+    Egoismo_Relativo = numpy.zeros((N_Nichos,N_Especies,4))
+    E_Total = 0
+    
+    for i in range(0,N_Nichos):
+        
+        for j in range(0,N_Especies):
+            if Especies_Nicho[i,j,0] == 0: #Individual
+                Egoismo[i,j,0] = 0
+            else:    
                 Egoismo[i,j,0] = 1 + Data_Especies[j,0]
 
             if Especies_Nicho[i,j,1] == 0: #Recipiente
@@ -439,7 +501,7 @@ def greed_calc(Especies_Nicho, Data_Especies, N_Nichos, N_Especies):
                 if (Data_Especies[j,0] + Data_Especies[j,4]) == 0:
                     Egoismo[i,j,3] = Data_Especies[j,0] + (Data_Especies[j,0] + Data_Especies[int(Data_Especies[j,2]),4])/0.1
                 else:    
-                    Egoismo[i,j,3] = Data_Especies[j,0] + (Data_Especies[j,0] + Data_Especies[int(Data_Especies[j,2]),4])/(Data_Especies[j,0] + Data_Especies[j,4])
+                    Egoismo[i,j,3] = Data_Especies[j,0] + Data_Especies[int(Data_Especies[j,2]),4] + (Data_Especies[j,0] + Data_Especies[int(Data_Especies[j,2]),4])/(Data_Especies[j,0] + Data_Especies[j,4])
 
         MAX = numpy.amax(Egoismo[i,:,:])
         if MAX == 0:

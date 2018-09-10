@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1213</width>
+    <width>1316</width>
     <height>759</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Autómata Celular v0.7.0</string>
+   <string>Autómata Celular v0.7.1</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -304,7 +304,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1213</width>
+     <width>1316</width>
      <height>26</height>
     </rect>
    </property>

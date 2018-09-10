@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Main
-v0.7.0
+v0.7.1
 @author: Carlos Villagrasa Guerrero
 
 python 3
@@ -24,7 +24,7 @@ warnings.filterwarnings("ignore")
 
 from PyQt5.QtCore import QT_VERSION_STR
 from PyQt5.Qt import PYQT_VERSION_STR
-from sip import SIP_VERSION_STR 
+from sip import SIP_VERSION_STR
 
 print("Qt version:", QT_VERSION_STR)
 print("SIP version:", SIP_VERSION_STR)
