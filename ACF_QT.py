@@ -2,7 +2,7 @@
 
 """
 Automata Celular Qt Functions
-v0.7.1
+v0.7.2
 @author: Carlos Villagrasa Guerrero
 """
 
@@ -357,7 +357,7 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
             for i in range(0,N_Nichos):
                 self.progressBar.setValue((i/N_Nichos)*100)
                 
-                Especies_Nicho[i,:,:] = ACF.node_agrupation_percentage(Especies_Nicho[i,:,:],  Muertes[i,:,:], Data_Especies, N_Especies)
+                Especies_Nicho[i,:,:] = ACF.node_agrupation(Especies_Nicho[i,:,:], Data_Especies, N_Especies)
                         
                 Especies_Nicho[i,:,:] = ACF.node_asociation(Especies_Nicho[i,:,:],  Muertes[i,:,:], Data_Especies)
                 
@@ -406,7 +406,7 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
             for i in range(0,N_Nichos):
                 
                 self.progressBar.setValue((i/N_Nichos)*100)
-                [Especies_Nicho[i,:,:], Muertes[i,:,:]] = ACF.node_GS_new(Especies_Nicho[i,:,:], Muertes[i,:,:], Deaths, Egoismo_Relativo[i,:,:], Lambda, N_Especies)
+                [Especies_Nicho[i,:,:], Muertes[i,:,:]] = ACF.node_GS(Especies_Nicho[i,:,:], Muertes[i,:,:], Deaths, Egoismo_Relativo[i,:,:], Lambda, N_Especies)
 
 
 
@@ -441,10 +441,13 @@ class Sim(QtWidgets.QMainWindow, Ui_SimWindow):
             for i in range(0, N_Nichos):
                 self.progressBar.setValue((i/N_Nichos)*100)
 
-                Especies_Nicho [i,:,:] = ACF.node_flexibility_percentage(Especies_Nicho[i,:,:], Data_Especies, N_Especies, Muertes[i,:,:])
+                Especies_Nicho [i,:,:] = ACF.node_flexibility(Especies_Nicho[i,:,:], Data_Especies, N_Especies)
 
             print("FIN DE FLEXIBILIDAD", file = f)
             print(Especies_Nicho, file = f)    
+            
+            self.Actual.setText("FINISHING")
+            self.progressBar.setValue(99)
 
             Especies_Nicho = ACF.distribution(Especies_Nicho, N_Nichos,N_Especies)
 

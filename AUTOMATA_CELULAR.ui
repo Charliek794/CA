@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Autómata Celular v0.7.1</string>
+   <string>Autómata Celular v0.7.2</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -241,6 +241,12 @@
     </item>
     <item row="8" column="10">
      <widget class="QDoubleSpinBox" name="Lambda">
+      <property name="minimum">
+       <double>-100.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>100.000000000000000</double>
+      </property>
       <property name="value">
        <double>5.000000000000000</double>
       </property>

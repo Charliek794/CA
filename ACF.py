@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular Functions
-v0.7.1
+v0.7.2
 @author: Carlos Villagrasa Guerrero
 """
 
@@ -125,68 +125,6 @@ def convert_data(Names, Datos):
 
     return Data_Especies
 
-def node_agrupation(Especies_Nicho, Muertes, Data_Especies):
-    """
-    node_agrupation(Especies_Nicho, i, Muertes, Data_Especies)
-    Description:
-        -This function agruppate the especies of a node
-    Input:
-        -Especies_Nicho: Array with all the individuals and its positions on the nodes
-        -i: Node to agruppate
-        -Muertes: Array with the deaths for the species 
-        -Data_Especies: Array with data for the species       
-    """
-    order1 = random_order(Especies_Nicho[:,:])
-    temp_sin_asociar = Especies_Nicho[:,0].copy()
-    k = 0
-    
-    if len(order1) > 0:
-        while k < len(order1):
-            j = int(order1[k] / 10)
-
-            if Data_Especies[j,3] != -1 and temp_sin_asociar[j] > 0:
-                R = randint(0, 100)
-                
-                if Muertes[j,1] == 0 and Muertes[j,0] == 0:
-
-                    if R <= Data_Especies[j,5]:
-                        if int(Data_Especies[j,3]) != j:
-                            if temp_sin_asociar[int(Data_Especies[j,3])] > 0:
-                                Especies_Nicho[int(Data_Especies[j,7]),0] = Especies_Nicho[int(Data_Especies[j,7]),0] + 1
-                                
-                                Especies_Nicho[int(Data_Especies[j,3]),0] = Especies_Nicho[int(Data_Especies[j,3]),0] - 1
-                                temp_sin_asociar[int(Data_Especies[j,3])] = temp_sin_asociar[int(Data_Especies[j,3])] - 1
-                                
-                                Especies_Nicho[j,0] = Especies_Nicho[j,0] - 1
-                                temp_sin_asociar[j] = temp_sin_asociar[j] - 1
-                        else:
-                            if temp_sin_asociar[j] > 1:
-                                Especies_Nicho[int(Data_Especies[j,7]),0] = Especies_Nicho[int(Data_Especies[j,7]),0] + 1
-                                Especies_Nicho[j,0] = Especies_Nicho[j,0] - 2
-                                temp_sin_asociar[j] = temp_sin_asociar[j] - 2  
-                else:
-                    
-                    R = randint(-10, 10)
-
-                    if R + (Muertes[j,1]/(Muertes[j,0] + Muertes[j,1]))*100 <= Data_Especies[j,5]: #Groupping 
-                        if int(Data_Especies[j,3]) != j:
-                            if temp_sin_asociar[int(Data_Especies[j,3])] > 0:
-                                Especies_Nicho[int(Data_Especies[j,7]),0] = Especies_Nicho[int(Data_Especies[j,7]),0] + 1
-                                
-                                Especies_Nicho[int(Data_Especies[j,3]),0] = Especies_Nicho[int(Data_Especies[j,3]),0] - 1
-                                temp_sin_asociar[int(Data_Especies[j,3])] = temp_sin_asociar[int(Data_Especies[j,3])] - 1
-                                
-                                Especies_Nicho[j,0] = Especies_Nicho[j,0] - 1
-                                temp_sin_asociar[j] = temp_sin_asociar[j] - 1
-                        else:
-                            if temp_sin_asociar[j] > 1:
-                                Especies_Nicho[int(Data_Especies[j,7]),0] = Especies_Nicho[int(Data_Especies[j,7]),0] + 1
-                                Especies_Nicho[j,0] = Especies_Nicho[j,0] - 2
-                                temp_sin_asociar[j] = temp_sin_asociar[j] - 2    
-
-            k = k +1
-    return Especies_Nicho
-
 def node_agrupation_percentage(Especies_Nicho, Muertes, Data_Especies, N_Especies):
     """
     node_agrupation(Especies_Nicho, i, Muertes, Data_Especies)
@@ -238,6 +176,84 @@ def node_agrupation_percentage(Especies_Nicho, Muertes, Data_Especies, N_Especie
             k = k +1
     return Especies_Nicho
 
+def node_agrupation(Especies_Nicho, Data_Especies, N_Especies):
+    """
+    node_agrupation(Especies_Nicho, i, Muertes, Data_Especies)
+    Description:
+        -This function agruppate the especies of a node
+    Input:
+        -Especies_Nicho: Array with all the individuals and its positions on the nodes
+        -i: Node to agruppate
+        -Muertes: Array with the deaths for the species 
+        -Data_Especies: Array with data for the species       
+    """
+    temp_sin_asociar = Especies_Nicho[:,:].copy()  
+
+    SUM_E = numpy.sum(Especies_Nicho)
+
+    for i in range(0, N_Especies):
+        if Data_Especies[i,3] != -1:
+            if temp_sin_asociar[i,0] > 0:
+                if Data_Especies[i,5] > 0:
+                    if Data_Especies[i,5] > temp_sin_asociar[i,0]/SUM_E:
+                        if int(Data_Especies[i,5]*SUM_E/100) < temp_sin_asociar[i,0]:
+                            if int(Data_Especies[i,5]*SUM_E/100) < temp_sin_asociar[int(Data_Especies[i,3]),0]:
+                                Especies_Nicho[int(Data_Especies[i,7]),0] += int(Data_Especies[i,5]*SUM_E/100)
+                                Especies_Nicho[i,0] -= int(Data_Especies[i,5]*SUM_E/100)
+                                Especies_Nicho[int(Data_Especies[i,3]),0] -= int(Data_Especies[i,5]*SUM_E/100)
+                                temp_sin_asociar[int(Data_Especies[i,3]),0] -= int(Data_Especies[i,5]*SUM_E/100)
+                                temp_sin_asociar[i,0] -= int(Data_Especies[i,5]*SUM_E/100)
+                            else:
+                                Especies_Nicho[int(Data_Especies[i,7]),0] += temp_sin_asociar[int(Data_Especies[i,3]),0]
+                                Especies_Nicho[i,0] -= temp_sin_asociar[int(Data_Especies[i,3]),0]
+                                Especies_Nicho[int(Data_Especies[i,3]),0] = 0 
+                                temp_sin_asociar[int(Data_Especies[i,3]),0] = 0
+                                temp_sin_asociar[i,0] -= temp_sin_asociar[int(Data_Especies[i,3]),0]
+                        else: 
+                            if temp_sin_asociar[i,0] < temp_sin_asociar[int(Data_Especies[i,3]),0]:
+                                Especies_Nicho[int(Data_Especies[i,7]),0] += temp_sin_asociar[i,0]
+                                Especies_Nicho[i,0] = 0
+                                Especies_Nicho[int(Data_Especies[i,3]),0] -= temp_sin_asociar[i,0]
+                                temp_sin_asociar[int(Data_Especies[i,3]),0] -= temp_sin_asociar[i,0]
+                                temp_sin_asociar[i,0] = 0
+                            else:
+                                Especies_Nicho[int(Data_Especies[i,7]),0] += temp_sin_asociar[int(Data_Especies[i,3]),0]
+                                Especies_Nicho[i,0] -= temp_sin_asociar[int(Data_Especies[i,3]),0]
+                                Especies_Nicho[int(Data_Especies[i,3]),0] = 0 
+                                temp_sin_asociar[int(Data_Especies[i,3]),0] = 0
+                                temp_sin_asociar[i,0] -= temp_sin_asociar[int(Data_Especies[i,3]),0]
+
+                elif Data_Especies[i,5] < 0:
+                    if abs(Data_Especies[i,5]) < temp_sin_asociar[i,0]/SUM_E:
+                        if int((1 - abs(Data_Especies[i,5]))*SUM_E/100) < temp_sin_asociar[i,0]:
+                            if int((1 - abs(Data_Especies[i,5]))*SUM_E/100) < temp_sin_asociar[int(Data_Especies[i,3]),0]:
+                                Especies_Nicho[int(Data_Especies[i,7]),0] += int((1 - abs(Data_Especies[i,5]))*SUM_E/100)
+                                Especies_Nicho[i,0] -= int(Data_Especies[i,5]*SUM_E/100)
+                                Especies_Nicho[int(Data_Especies[i,3]),0] -= int((1 - abs(Data_Especies[i,5]))*SUM_E/100)
+                                temp_sin_asociar[int(Data_Especies[i,3]),0] -= int((1 - abs(Data_Especies[i,5]))*SUM_E/100)
+                                temp_sin_asociar[i,0] -= int(Data_Especies[i,5]*SUM_E/100)
+                            else:
+                                Especies_Nicho[int(Data_Especies[i,7]),0] += temp_sin_asociar[int(Data_Especies[i,3]),0]
+                                Especies_Nicho[i,0] -= temp_sin_asociar[int(Data_Especies[i,3]),0]
+                                Especies_Nicho[int(Data_Especies[i,3]),0] = 0 
+                                temp_sin_asociar[int(Data_Especies[i,3]),0] = 0
+                                temp_sin_asociar[i,0] -= temp_sin_asociar[int(Data_Especies[i,3]),0]
+                        else: 
+                            if temp_sin_asociar[i,0] < temp_sin_asociar[int(Data_Especies[i,3]),0]:
+                                Especies_Nicho[int(Data_Especies[i,7]),0] += temp_sin_asociar[i,0]
+                                Especies_Nicho[i,0] = 0
+                                Especies_Nicho[int(Data_Especies[i,3]),0] -= temp_sin_asociar[i,0]
+                                temp_sin_asociar[int(Data_Especies[i,3]),0] -= temp_sin_asociar[i,0]
+                                temp_sin_asociar[i,0] = 0
+                            else:
+                                Especies_Nicho[int(Data_Especies[i,7]),0] += temp_sin_asociar[int(Data_Especies[i,3]),0]
+                                Especies_Nicho[i,0] -= temp_sin_asociar[int(Data_Especies[i,3]),0]
+                                Especies_Nicho[int(Data_Especies[i,3]),0] = 0 
+                                temp_sin_asociar[int(Data_Especies[i,3]),0] = 0
+                                temp_sin_asociar[i,0] -= temp_sin_asociar[int(Data_Especies[i,3]),0]
+
+    return Especies_Nicho
+
 def node_asociation(Especies_Nicho, Muertes, Data_Especies):
     """
     node_agrupation(Especies_Nicho, i, Muertes, Data_Especies)
@@ -278,70 +294,7 @@ def node_asociation(Especies_Nicho, Muertes, Data_Especies):
             k = k +1
     return Especies_Nicho
 
-def reorder_Greed(order, Egoismo_Relativo):
-    """
-    reorder(order, inclusive, Egoismo_Relativo)
-    Description:
-        -This function reorder the order
-    Input:
-        -order: Array order to be reordered
-        -inclusive: flag for using DF or DF/IF
-        -Egoismo_Relativo: Array with data for the species       
-    """
-    T_min = 0
-    T_max = 0
-    for i in range(1,len(order[0])): 
-        if Egoismo_Relativo[order[0,i,0], order[0,i,1]] > Egoismo_Relativo[order[0,i-1,0], order[0,i-1,1]]:               
-
-            temp = numpy.arange(0, T_max - T_min + 1)
-            shuffle(temp)
-            crop = order[0,T_min : T_max+1,:].copy()
-
-            for t in range(0, T_max - T_min + 1):
-                order[0,T_min + t,:] = crop[temp[t],:]
-
-            T_min = i
-            T_max = i
-        else:
-            T_max = i
-    temp = numpy.arange(0, len(order[0]) - T_min)
-    shuffle(temp)
-    crop = order[0,T_min : len(order[0]),:].copy()
-
-    for t in range(0, len(order[0]) - T_min):
-        order[0,T_min + t,:] = crop[temp[t],:]
-    return order
-    
-def node_GS_Greed(order, Especies_Nicho, Muertes, Deaths):
-    """
-    node_GS(order, i, Especies_Nicho, Muertes, Deaths)
-    Description:
-        -This function does the group selection on a node 
-    Input:
-        -order: Array order to be reordered
-        -inclusive: flag for using DF or DF/IF
-        -Data_Especies: Array with data for the species       
-    """
-    o = len(order[0]) - 1
-    k = Deaths/100 * Especies_Nicho[:,:].sum(axis = 0).sum()
-    k = math.ceil(k)
-    
-    while o >= 0 and k > 0: 
-        if Especies_Nicho[order[0,o,0],order[0,o,1]] >= k:
-            Especies_Nicho[order[0,o,0],order[0,o,1]] = Especies_Nicho[order[0,o,0],order[0,o,1]] - k
-            Muertes[order[0,o,0],0] += k
-            k = 0
-        else:
-            k = k - Especies_Nicho[order[0,o,0],order[0,o,1]]
-            Muertes[order[0,o,0],0] += Especies_Nicho[order[0,o,0],order[0,o,1]]
-            Especies_Nicho[order[0,o,0],order[0,o,1]] = 0
-
-        if k > 0:
-            o = o - 1
-    
-    return [Especies_Nicho, Muertes]
-
-def node_GS_new(Especies_Nicho, Muertes, Deaths, Egoismo_Relativo, Lambda, N_Especies):
+def node_GS(Especies_Nicho, Muertes, Deaths, Egoismo_Relativo, Lambda, N_Especies):
     """
     node_GS(order, i, Especies_Nicho, Muertes, Deaths)
     Description:
@@ -358,16 +311,20 @@ def node_GS_new(Especies_Nicho, Muertes, Deaths, Egoismo_Relativo, Lambda, N_Esp
 
     for i in range(0,N_Especies):
         for j in range(0,4):
-            Distr[i,j] = math.exp(Lambda * Egoismo_Relativo[i,j])
+            if Especies_Nicho[i,j] == 0:
+                Distr[i,j] = 0
+            else:
+                Distr[i,j] = math.exp(Lambda * Egoismo_Relativo[i,j])
 
     SUM_D = numpy.sum(Distr)
+
     for i in range(0,N_Especies):
         for j in range(0,4):
             if Especies_Nicho[i,j] > 0:
-
-                if math.ceil(Distr[i,j] * k / SUM_D) < Especies_Nicho[i,j]:
-                    Muertes[i,0] += math.ceil(Distr[i,j] * k / SUM_D)
-                    Especies_Nicho[i,j] -= Muertes[i,0]
+                temp = math.ceil(Distr[i,j] * k / SUM_D)
+                if temp < Especies_Nicho[i,j]:
+                    Muertes[i,0] += temp
+                    Especies_Nicho[i,j] -= temp
                 else:
                     Muertes[i,0] += Especies_Nicho[i,j]
 
@@ -465,84 +422,6 @@ def greed_calc(Especies_Nicho, Data_Especies, N_Nichos, N_Especies):
 
     return Egoismo_Relativo
 
-def greed_calc_old_2(Especies_Nicho, Data_Especies, N_Nichos, N_Especies):
-
-    Egoismo = numpy.zeros((N_Nichos,N_Especies,4))
-    Egoismo_Relativo = numpy.zeros((N_Nichos,N_Especies,4))
-    E_Total = 0
-    
-    for i in range(0,N_Nichos):
-        
-        for j in range(0,N_Especies):
-            if Especies_Nicho[i,j,0] == 0: #Individual
-                Egoismo[i,j,0] = 0
-            else:    
-                Egoismo[i,j,0] = 1 + Data_Especies[j,0]
-
-            if Especies_Nicho[i,j,1] == 0: #Recipiente
-                Egoismo[i,j,1] = 0
-            else:
-                if Data_Especies[j,0] == 0:
-                    Egoismo[i,j,1] = 1 + 0.1 + Data_Especies[int(Data_Especies[j,2]),4] + Data_Especies[int(Data_Especies[j,2]),4]/0.1
-                else:    
-                    Egoismo[i,j,1] = 1 + Data_Especies[j,0] + Data_Especies[int(Data_Especies[j,2]),4] + Data_Especies[int(Data_Especies[j,2]),4]/Data_Especies[j,0]
-
-            if Especies_Nicho[i,j,2] == 0: #Actor
-                Egoismo[i,j,2] = 0
-            else:
-                if (Data_Especies[j,0] + Data_Especies[j,4]) == 0:
-                    Egoismo[i,j,2] = Data_Especies[j,0] + Data_Especies[j,0]/0.1
-                else:    
-                    Egoismo[i,j,2] = Data_Especies[j,0] + Data_Especies[j,0]/(Data_Especies[j,0] + Data_Especies[j,4])
-
-            if Especies_Nicho[i,j,3] == 0: #Reciproco
-                Egoismo[i,j,3] = 0
-            else:
-                if (Data_Especies[j,0] + Data_Especies[j,4]) == 0:
-                    Egoismo[i,j,3] = Data_Especies[j,0] + (Data_Especies[j,0] + Data_Especies[int(Data_Especies[j,2]),4])/0.1
-                else:    
-                    Egoismo[i,j,3] = Data_Especies[j,0] + Data_Especies[int(Data_Especies[j,2]),4] + (Data_Especies[j,0] + Data_Especies[int(Data_Especies[j,2]),4])/(Data_Especies[j,0] + Data_Especies[j,4])
-
-        MAX = numpy.amax(Egoismo[i,:,:])
-        if MAX == 0:
-            MAX = 1
-        for j in range(0,N_Especies):    
-            Egoismo_Relativo[i,j,0] = Egoismo[i,j,0] / MAX
-            Egoismo_Relativo[i,j,1] = Egoismo[i,j,1] / MAX
-            Egoismo_Relativo[i,j,2] = Egoismo[i,j,2] / MAX
-            Egoismo_Relativo[i,j,3] = Egoismo[i,j,3] / MAX
-
-    return Egoismo_Relativo
-
-def greed_calc_old(Data_Especies, N_Nichos, N_Especies):
-
-    Egoismo = numpy.zeros((N_Nichos,N_Especies,4))
-    Egoismo_Relativo = numpy.zeros((N_Nichos,N_Especies,4))
-    E_Total = 0
-    
-    for i in range(0,N_Nichos):
-        MAX = max(Data_Especies[:,0])
-        for j in range(0,N_Especies):
-            Egoismo[i,j,0] = 1
-            Egoismo[i,j,1] = 1
-            if Data_Especies[j,0] == 0 and Data_Especies[j,4] == 0:
-                Egoismo[i,j,2] = 0
-                Egoismo[i,j,3] = 0
-            elif (Data_Especies[j,0] + Data_Especies[j,4]) == 0:
-                Egoismo[i,j,2] = Data_Especies[j,0] / 0.1
-                Egoismo[i,j,3] = Data_Especies[j,0] / 0.1
-            else:
-                Egoismo[i,j,2] = Data_Especies[j,0] / (Data_Especies[j,0] + Data_Especies[j,4])
-                Egoismo[i,j,3] = Data_Especies[j,0] / (Data_Especies[j,0] + Data_Especies[j,4])
-
-        for j in range(0,N_Especies):    
-            Egoismo_Relativo[i,j,0] = (Egoismo[i,j,0] * Data_Especies[j,0]) / MAX
-            Egoismo_Relativo[i,j,1] = (Egoismo[i,j,1] * Data_Especies[j,0]) / MAX
-            Egoismo_Relativo[i,j,2] = (Egoismo[i,j,2] * Data_Especies[j,0]) / MAX
-            Egoismo_Relativo[i,j,3] = (Egoismo[i,j,3] * Data_Especies[j,0]) / MAX
-
-    return Egoismo_Relativo
-
 def node_reproduction(Especies_Nicho, Data_Especies, N_Especies):
 
     temp_Especies = numpy.zeros((N_Especies,4), dtype=int)
@@ -559,32 +438,43 @@ def node_reproduction(Especies_Nicho, Data_Especies, N_Especies):
                 temp_Especies[j,0] += Especies_Nicho[j,k] * Data_Especies[j,0]
     return temp_Especies
 
-def node_flexibility(Especies_Nicho, Data_Especies, N_Especies, Muertes):
-    for j in range(0, N_Especies):             
-        if Data_Especies[j,8] != -1: 
 
-            for l in range(0, Especies_Nicho[j,0]):
-                R = randint(0, 100)
-                if Muertes[j,1] == 0 and Muertes[j,1] == 0:
-                    if R > Data_Especies[j,5]:
-                        Especies_Nicho[j,0] = Especies_Nicho[j,0] - 1
-                        Especies_Nicho[int(Data_Especies[j,8]),0] = Especies_Nicho[int(Data_Especies[j,8]),0] + 1
-                        Especies_Nicho[int(Data_Especies[int(Data_Especies[j,8]),3]),0] = Especies_Nicho[int(Data_Especies[int(Data_Especies[j,8]),3]),0] + 1
-                elif (R*0.2 - 10) + (Muertes[j,1]/(Muertes[j,0] + Muertes[j,1]))*100 > Data_Especies[j,5]:
-                    Especies_Nicho[j,0] = Especies_Nicho[j,0] - 1
-                    Especies_Nicho[int(Data_Especies[j,8]),0] = Especies_Nicho[int(Data_Especies[j,8]),0] + 1
-                    Especies_Nicho[int(Data_Especies[int(Data_Especies[j,8]),3]),0] = Especies_Nicho[int(Data_Especies[int(Data_Especies[j,8]),3]),0] + 1
-    return Especies_Nicho
 
-def node_flexibility_percentage(Especies_Nicho, Data_Especies, N_Especies, Muertes):
+def node_flexibility(Especies_Nicho, Data_Especies, N_Especies):
 
-    for j in range(0, N_Especies):    
-        temp_to_agr = int(Especies_Nicho[j,:].sum() * Data_Especies[j,5] / 100)         
-        if Data_Especies[j,8] != -1: 
-            Especies_Nicho[int(Data_Especies[j,8]),0] = Especies_Nicho[int(Data_Especies[j,8]),0] + (Especies_Nicho[j,0] - temp_to_agr)
-            Especies_Nicho[int(Data_Especies[int(Data_Especies[j,8]),3]),0] = Especies_Nicho[int(Data_Especies[int(Data_Especies[j,8]),3]),0] + (Especies_Nicho[j,0] - temp_to_agr)
-            Especies_Nicho[j,0] = temp_to_agr
+    temp_sin_asociar = Especies_Nicho[:,:].copy()  
 
+    SUM_E = numpy.sum(Especies_Nicho)
+
+    for i in range(0, N_Especies):
+        if Data_Especies[i,8] != -1:
+            if temp_sin_asociar[i,0] > 0:
+                if Data_Especies[i,5] > 0:
+                    if Data_Especies[i,5] > temp_sin_asociar[i,0]/SUM_E:
+                        if int(Data_Especies[i,5]*SUM_E/100) < temp_sin_asociar[i,0]:
+                            Especies_Nicho[int(Data_Especies[i,8]),0] += temp_sin_asociar[i,0] - int(Data_Especies[i,5]*SUM_E/100)
+                            Especies_Nicho[int(Data_Especies[int(Data_Especies[i,8]),3]),0] += temp_sin_asociar[i,0] - int(Data_Especies[i,5]*SUM_E/100)
+                            Especies_Nicho[i,0] = int(Data_Especies[i,5]*SUM_E/100)
+
+                        else: 
+                            Especies_Nicho[int(Data_Especies[i,8]),0] += 0
+                            Especies_Nicho[int(Data_Especies[int(Data_Especies[i,8]),3]),0] += 0
+                            Especies_Nicho[i,0] = temp_sin_asociar[i,0]
+
+                elif Data_Especies[i,5] < 0:
+                    if abs(Data_Especies[i,5]) < temp_sin_asociar[i,0]/SUM_E:
+                        if int((1 - abs(Data_Especies[i,5]))*SUM_E/100) < temp_sin_asociar[i,0]:
+
+                            Especies_Nicho[int(Data_Especies[i,8]),0] += temp_sin_asociar[i,0] - int((1 - abs(Data_Especies[i,5]))*SUM_E/100)
+                            Especies_Nicho[int(Data_Especies[int(Data_Especies[i,8]),3]),0] += temp_sin_asociar[i,0] - int((1 - abs(Data_Especies[i,5]))*SUM_E/100)
+                            Especies_Nicho[i,0] = int((1 - abs(Data_Especies[i,5]))*SUM_E/100)
+                           
+                        else: 
+
+                            Especies_Nicho[int(Data_Especies[i,8]),0] += 0
+                            Especies_Nicho[int(Data_Especies[int(Data_Especies[i,8]),3]),0] += 0
+                            Especies_Nicho[i,0] = temp_sin_asociar[i,0]
+                            
     return Especies_Nicho
 
 

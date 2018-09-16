@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Automata Celular File Functions
-v0.7.1
+v0.7.2
 @author: Carlos Villagrasa Guerrero
 """
 import csv
